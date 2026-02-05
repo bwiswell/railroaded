@@ -5,6 +5,6 @@ class Accessibility(Enum):
     '''
     An `Enum` describing the accessibility of a transit location.
     '''
-    UNKNOWN = '0'
-    ACCESSIBLE = '1'
-    INACCESSIBLE = '2'
+    UNKNOWN = 0
+    ACCESSIBLE = 1
+    INACCESSIBLE = 2

@@ -179,6 +179,21 @@ class GTFS(s.Seared):
         )
     
     def between (self, start: pydate, end: pydate) -> GTFS:
+        '''
+        Returns a `GTFS` object containing only the trips with `Timetable`s
+        containing entries between the given `start` and `end` times.
+
+        Parameters:
+            start (date):
+                the beginning of the time window
+            end (date):
+                the end of the time window
+
+        Returns:
+            gtfs (GTFS):
+                a `GTFS` object containing only the trips with `Timetable`s
+                containing entries between the given `start` and `end` times
+        '''
         return self._ref(self.trips.between(start, end))
     
     def connecting (self, stop_a_id: str, stop_b_id: str) -> GTFS:
@@ -201,7 +216,7 @@ class GTFS(s.Seared):
     
     def on_date (self, date: pydate) -> GTFS:
         '''
-        Returns a `GTFS` object containing only the trips occuring on `date`
+        Returns a `GTFS` object containing only the trips occuring on `date`.
 
         Parameters:
             date (date):
@@ -214,12 +229,41 @@ class GTFS(s.Seared):
         return self._ref(self.trips.on_date(self.schedules.on_date(date)))
     
     def on_route (self, route_id: str) -> GTFS:
+        '''
+        Returns a `GTFS` object containing only the trips that belong to the
+        route specified by `route_id`.
+
+        Parameters:
+            route_id (str):
+                the unique ID corresponding to the route
+
+        Returns:
+            gtfs (GTFS):
+                a `GTFS` object containing only the trips that belong to the
+                route specified by `route_id`
+        '''
         return self._ref(self.trips.on_route(route_id))
+    
+    def through (self, stop_id: str) -> GTFS:
+        '''
+        Returns a `GTFS` object containing only the trips that go through the
+        stop specified by `stop_id`.
+
+        Parameters:
+            stop_id (str):
+                the unique ID corresponding to the stop
+
+        Returns:
+            gtfs (GTFS):
+                a `GTFS` object containing only the trips that go through the
+                stop specified by `stop_id`
+        '''
+        return self._ref(self.trips.through(stop_id))
 
     def today (self) -> GTFS:
         '''
         Returns a `GTFS` object containing only the trips occuring on the
-        current date.'
+        current date.
         
         Returns:
             gtfs (GTFS):

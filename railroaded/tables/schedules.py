@@ -112,6 +112,18 @@ class Schedules(s.Seared):
 
     ### METHODS ###
     def on_date (self, date: pydate) -> list[str]:
+        '''
+        Helper function to be used with `Trips.on_date` that returns a `list`
+        of all `str` service IDs active on `date`.
+
+        Parameters:
+            date (date):
+                the date to check for active service IDs
+
+        Returns:
+            service_ids (list[str]):
+                a `list` of all `str` service IDs active on `date`
+        '''
         return [
             sid for sid in self.service_ids
             if self[sid].active(date)
