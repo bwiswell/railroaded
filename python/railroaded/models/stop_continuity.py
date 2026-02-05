@@ -3,7 +3,7 @@ from enum import Enum
 
 class StopContinuity(Enum):
     '''
-    An `Enum` describing the stop continuity of the route.
+    An `Enum` describing the stop continuity of a route.
     '''
     CONTINUOUS = 0
     NONE = 1

@@ -33,8 +33,6 @@ class Route(s.Seared):
             the unique ID of the route
         agency_id (str):
             the unique ID of the agency the route belongs to
-        network_id (Optional[str]):
-            the unique ID of the network the route belongs to
         color (str):
             the color associated with the route
         desc (Optional[str]):
@@ -45,6 +43,8 @@ class Route(s.Seared):
             the full name of the route
         name (str):
             the name of the route
+        network_id (Optional[str]):
+            the unique ID of the network the route belongs to
         pickups (StopContinuity):
             the continuity of pickups along the route
         short_name (Optional[str]):
@@ -56,7 +56,7 @@ class Route(s.Seared):
         type (TransitType):
             the `TransitType` of the route
         url (Optional[str]):
-            the URL of a web page about the route
+            the URL of a webpage about the route
     '''
 
     ### ATTRIBUTES ###
@@ -99,7 +99,7 @@ class Route(s.Seared):
     '''a description of the route'''
     long_name: Optional[str] = s.Str(data_key='route_long_name')
     '''the full name of the route'''
-    short_name: Optional[str] = s.Str(data_key='route_sort_name')
+    short_name: Optional[str] = s.Str(data_key='route_short_name')
     '''the short name of the route'''
     url: Optional[str] = s.Str(data_key='route_url')
     '''the URL of a web page about the route'''
