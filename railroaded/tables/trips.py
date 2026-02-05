@@ -80,6 +80,11 @@ class Trips(s.Seared):
         return list(self.data.keys())
     
     @property
+    def service_ids (self) -> list[str]:
+        '''a `list` of all `str` service IDs in the `Trips` table'''
+        return list(set([t.service_id for t in self.trips]))
+    
+    @property
     def trips (self) -> list[Trip]:
         '''a `list` of all `Trip` records in the `Trips` table'''
         return list(self.data.values())    
@@ -105,25 +110,105 @@ class Trips(s.Seared):
 
     ### METHODS ###    
     def between (self, start: time, end: time) -> Trips:
+        '''
+        Returns a `Trips` table containing only the `Trip` records with
+        `Timetable`s that have entries between the given `start` and `end`
+        times.
+
+        Parameters:
+            start (time):
+                the beginning of the time window
+            end (time):
+                the end of the time window
+
+        Returns:
+            trips (Trips):
+                a `Trips` table containing only the `Trip` records with
+                `Timetable`s that have entries between the given `start` and 
+                `end` times
+        '''
         return Trips({
             t.id: t for t in self.trips
             if t.between(start, end)
         })
     
     def connecting (self, stop_a_id: str, stop_b_id: str) -> Trips:
+        '''
+        Returns a `Trips` table containing only the `Trip` records with
+        `Timetable`s that contain chronologically ordered entries for both
+        `stop_a_id` and `stop_b_id`.
+
+        Parameters:
+            stop_a_id (str):
+                the unique ID associated with the first stop
+            stop_b_id (str):
+                the unique ID associated with the second stop
+
+        Returns:
+            trips (Trips):
+                a `Trips` table containing only the `Trip` records with
+                `Timetable`s that contain chronologically ordered entries for
+                both `stop_a_id` and `stop_b_id`
+        '''
         return Trips({
             t.id: t for t in self.trips
             if t.connects(stop_a_id, stop_b_id)
         })
     
     def on_date (self, service_ids: list[str]) -> Trips:
+        '''
+        Helper function to be used with `Schedules.on_date` that returns a
+        `Trips` table containing only the `Trip` records associated with the
+        given `service_ids`.
+
+        Parameters:
+            service_ids (list[str]):
+                a `list` of `str` service IDs to search for
+
+        Returns:
+            trips (Trips):
+                a `Trips` table containing only the `Trip` records associated
+                with the given `service_ids`
+        '''
         return Trips({
             t.id: t for t in self.trips
             if t.service_id in service_ids
         })
     
     def on_route (self, route_id: str) -> Trips:
+        '''
+        Returns a `Trips` table containing only the `Trip` records that belong
+        to the route specified by `route_id`.
+
+        Parameters:
+            route_id (str):
+                the unique ID corresponding to the route
+
+        Returns:
+            trips (Trips):
+                a `Trips` table containing only the `Trip` records that belong
+                to the route specified by `route_id`
+        '''
         return Trips({
             t.id: t for t in self.trips
             if t.route_id == route_id
+        })
+    
+    def through (self, stop_id: str) -> Trips:
+        '''
+        Returns a `Trips` table containing only the `Trip` records that go
+        through the stop specified by `stop_id`.
+
+        Parameters:
+            stop_id (str):
+                the unique ID corresponding to the stop
+
+        Returns:
+            trips (Trips):
+                a `Trips` table containing only the `Trip` records that go
+                through the stop specified by `stop_id`
+        '''
+        return Trips({
+            t.id: t for t in self.trips
+            if t.through(stop_id)
         })

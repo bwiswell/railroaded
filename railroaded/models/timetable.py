@@ -97,6 +97,21 @@ class Timetable(s.Seared):
 
     ### METHODS ###
     def between (self, start: time, end: time) -> bool:
+        '''
+        Returns a `bool` indicating if the `Timetable` contains entries between
+        the given `start` and `end` times.
+
+        Parameters:
+            start (time):
+                the beginning of the time window
+            end (time):
+                the end of the time window
+
+        Returns:
+            between (bool):
+                a flag indicating if the `Timetable` contains entries between
+                the given `start` and `end` times
+        '''
         return self.start <= end and self.end >= start
 
     def connects (self, stop_a_id: str, stop_b_id: str) -> bool:
@@ -111,32 +126,25 @@ class Timetable(s.Seared):
                 the unique ID associated with the second stop
 
         Returns:
-            a `bool` indicating if the `Timetable` contains chronologically
-            ordered entries for both `stop_a_id` and `stop_b_id`
+            connects (bool):
+                a flag indicating if the `Timetable` contains chronologically
+                ordered entries for both `stop_a_id` and `stop_b_id`
         '''
-        return stop_a_id in self.data and stop_b_id in self.data and \
+        return self.through(stop_a_id) and self.through(stop_b_id) and \
             self[stop_a_id].index < self[stop_b_id].index
-        
-    @property
-    def location (self) -> tuple[Optional[StopTime], Optional[StopTime]]:
-        t = datetime.now().time()
-        if (self.start.start_time <= t and t <= self.end.end_time) or \
-                (self.start.start_time <= t and self.end.end_offset) or \
-                (self.end.end_offset and t <= self.end.end_time):
-            stops = self.stops
-            for i in range(len(stops - 1)):
-                a, b = stops[i], stops[i+1]
-                if (a.start_time <= t and t <= b.end_time) or \
-                        (a.start_time <= t and b.end_offset) or \
-                        (b.end_offset and t <= b.end_time):
-                    return a, b
-        else:
-            tm = t.hour * 60 + t.minute
-            sm = self.start.start_time.hour * 60 + self.start.start_time.minute
-            em = self.end.end_time.hour * 60 + self.end.end_time.minute
-            tts = abs(tm - sm)
-            tte = abs(tm - em)
-            if tts < tte:
-                return None, self.start
-            else:
-                return self.end, None
+    
+    def through (self, stop_id: str) -> bool:
+        '''
+        Returns a `bool` indicating if the `Timetable` contains an entry for 
+        the `stop_id`.
+
+        Parameters:
+            stop_id (str):
+                the unique ID associated with the stop
+
+        Returns:
+            through (bool):
+                a flag indicating if the `Timetable` contains an entry for
+                the 'stop_id`
+        '''
+        return stop_id in self.data

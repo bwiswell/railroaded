@@ -91,6 +91,21 @@ class Trip(s.Seared):
 
     ### METHODS ###
     def between (self, start: time, end: time) -> bool:
+        '''
+        Returns a `bool` indicating if the `Timetable` for the `Trip` record
+        contains entries between the given `start` and `end` times.
+
+        Parameters:
+            start (time):
+                the beginning of the time window
+            end (time):
+                the end of the time window
+
+        Returns:
+            between (bool):
+                a flag indicating if the `Timetable` for the `Trip` record
+                contains entries between the given `start` and `end` times.
+        '''
         return self.timetable.between(start, end)
 
     def connects (self, stop_a_id: str, stop_b_id: str) -> bool:
@@ -106,12 +121,25 @@ class Trip(s.Seared):
                 the unique ID associated with the second stop
 
         Returns:
-            a `bool` indicating if the `Timetable` for the `Trip` record
-            contains chronologically ordered entries for both `stop_a_id` and 
-            `stop_b_id`.
+            connects (bool):
+                a flag indicating if the `Timetable` for the `Trip` record
+                contains chronologically ordered entries for both `stop_a_id`
+                and `stop_b_id`
         '''
         return self.timetable.connects(stop_a_id, stop_b_id)
     
-    @property
-    def location (self) -> tuple[Optional[StopTime], Optional[StopTime]]:
-        return self.timetable.location
+    def through (self, stop_id: str) -> bool:
+        '''
+        Returns a `bool` indicating if the `Timetable` for the `Trip` record
+        contains an entry for the `stop_id`.
+
+        Parameters:
+            stop_id (str):
+                the unique ID associated with the stop
+        
+        Returns:
+            through (bool):
+                a flag indicating if the `Timetable` for the `Trip` record
+                contains an entry for the `stop_id`.
+        '''
+        return self.timetable.through(stop_id)

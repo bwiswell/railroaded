@@ -33,7 +33,7 @@ poetry add git+https://www.github.com/bwiswell/railroaded.git
 
 ## Usage
 
-`rr.GTFS` is the root object for handling GTFS data. the `rr.GTFS` object can be created from local or remote sources using `rr.GTFS.read`, and automatically handles parsing and converting the GTFS dataset to mGTFS. the resulting `rr.GTFS` object can be written out to a `.json` file using `rr.GTFS.save`.
+`rr.GTFS` is the root object for handling GTFS data. The `rr.GTFS` object can be created from local or remote sources using `rr.GTFS.read`, and automatically handles parsing and converting the GTFS dataset to mGTFS. The resulting `rr.GTFS` object can be written out to a `.json` file using `rr.GTFS.save`.
 
 #### Reading with `rr.GTFS.read`
 
