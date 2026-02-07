@@ -1,6 +1,21 @@
 import csv from 'csv-parser'
 import fs from 'fs'
 
+
+export function isSameDay (dateA: Date, dateB: Date): boolean {
+    return (
+        dateA.getFullYear() === dateB.getFullYear() &&
+        dateA.getMonth() === dateB.getMonth() &&
+        dateA.getDate() === dateB.getDate()
+    );
+}
+
+
+export function includesDay (day: Date, dates: Date[]): boolean {
+    return dates.some(date => isSameDay(day, date))
+}
+
+
 type ParseOptions<T> = {
     interpolateCols?: { [key: string]: (record: Partial<T>) => any },
     intCols?: string[],

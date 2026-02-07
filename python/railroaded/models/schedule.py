@@ -26,7 +26,7 @@ class Schedule(s.Seared):
         exceptions (list[date]): 
             a list of dates on which service is suspended
         ranges (list[DateRange]):
-            a `list` `DateRange` records associated with the schedule
+            a list of `DateRange` records associated with the schedule
         start (date):
             the start date of the transit schedule
     '''

@@ -5,7 +5,7 @@ import {
     routeName,
     stopContinuity,
     transitType
-} from '../types'
+} from '../types/types'
 
 /**
  * Utility class for loading and accessing a table mapping `string` IDs to
@@ -18,9 +18,6 @@ import {
  * @see Route
  */
 export default class Routes {
-    /**
-     * 
-     */
     routes: Route[]
     data: Record<string, Route>
     ids: string[]

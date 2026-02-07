@@ -30,7 +30,7 @@ class CalendarDate(s.Seared):
     '''the ID of the service the calendar date modifies'''
     
     # Required fields
-    date: pydate = s.Date(format='%Y%m%d', required=True)
+    date: pydate = s.Date(format='%Y-%m-%d', required=True)
     '''the date when the service exception occurs'''
     exception: ExceptionType = s.Enum(
         data_key='exception_type', enum=ExceptionType, required=True

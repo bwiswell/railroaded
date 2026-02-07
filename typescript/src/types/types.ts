@@ -69,6 +69,9 @@ export type Agency = {
 }
 
 
+
+
+
 /**
  * A GTFS model for records found in `routes.txt`. Identifies a transit route.
  * 
@@ -105,3 +108,5 @@ export type Route = {
 }
 export const routeName = (route: Partial<Route>): string => 
     route.longName ?? route.shortName ?? ''
+
+

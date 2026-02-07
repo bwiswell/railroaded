@@ -1,6 +1,6 @@
 import { loadList } from '../util'
 
-import type { Agency } from '../types'
+import type { Agency } from '../types/types'
 
 /**
  * Utility class for loading and accessing a table mapping `string` IDs to
