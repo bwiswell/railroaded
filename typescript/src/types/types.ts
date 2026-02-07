@@ -1,72 +1,7 @@
-export const accessibilities = [
-    'unknown',
-    'accessible',
-    'not_accessible'
-] as const
-/**
- * An enumeration describing the accessibility of a transit location.
- */
-export type Accessibility = typeof accessibilities[number]
-export const accessibility = (accessibility: number): Accessibility => 
-    accessibilities[accessibility] as Accessibility
 
 
-export const stopContinuities = [
-    'continuous',
-    'none',
-    'via_phone',
-    'via_driver'
-] as const
-/**
- * An enumeration describing the stop continuity of a route.
- */
-export type StopContinuity = typeof stopContinuities[number]
-export const stopContinuity = (continuity: number): StopContinuity => 
-    stopContinuities[continuity] as StopContinuity
 
 
-export const transitTypes = [
-    'light-rail', 
-    'subway', 
-    'rail', 
-    'bus', 
-    'ferry', 
-    'cable_tram', 
-    'cable_car', 
-    'funicular',
-    'trolleybus',
-    'monorail'
-] as const
-/**
- * An enumeration describing the transit type of a route.
- */
-export type TransitType = typeof transitTypes[number]
-export const transitType = (type: number): TransitType =>
-    transitTypes[type] as TransitType
-
-
-/**
- * A GTFS model for records found in `agency.txt`. Identifies a transit agency.
- * 
- * @property id - the unique ID of the transit agency
- * @property email - the customer service email of the transit agency
- * @property fareURL - the URL of a fare or ticket website for the transit agency
- * @property lang - the primary language used by the transit agency
- * @property name - the name of the transit agency
- * @property phone - the voice telephone number for the transit agency
- * @property timezone - the timezone where the transit agency is located
- * @property url - the URL of the transit agency
- */
-export type Agency = {
-    id: string
-    email?: string
-    fareURL?: string
-    lang?: string
-    name: string
-    phone?: string
-    timezone: string
-    url: string
-}
 
 
 

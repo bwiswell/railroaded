@@ -1,6 +1,7 @@
 import DateRange, { GTFSDateRange, MGTFSDateRange } from './dateRange'
 
-import { includesDay, split } from '../util'
+import type { GTFSCalendarDate } from '../types'
+import { formatDate, includesDay, parseDate, split } from '../util'
 
 
 export type MGTFSSchedule = {
@@ -33,12 +34,8 @@ export default class Schedule {
 
     constructor (data: MGTFSSchedule) {
         this.serviceId = data.service_id
-        this.additions = data.additions.map(
-            date => new Date(Date.parse(date))
-        )
-        this.exceptions = data.exceptions.map(
-            date => new Date(Date.parse(date))
-        )
+        this.additions = data.additions.map(parseDate)
+        this.exceptions = data.exceptions.map(parseDate)
         this.ranges = data.ranges.map(range => new DateRange(range))
         this.start = new Date(
             Math.min(...this.ranges.map(range => range.start.getTime()))
@@ -51,33 +48,25 @@ export default class Schedule {
     static fromGTFS (
                 serviceId: string,
                 ranges: GTFSDateRange[],
-                dates: CalendarDate[]
-            ): Schedule {
-        const splitted = split(dates, date => date.type === 1)
-        return new Schedule({
+                calDates: GTFSCalendarDate[]
+            ): MGTFSSchedule {
+        const splitExceptions = split(
+            calDates, 
+            calDate => calDate.exception_type === 1
+        )
+        return {
             service_id: serviceId,
-            additions: splitted.truthy.map(date => date.date),
-            exceptions: splitted.falsy.map(date => date.date),
-            ranges: ranges.map(range => DateRange.fromGTFS(range))
-        })
+            additions: splitExceptions.truthy.map(calDate => calDate.date),
+            exceptions: splitExceptions.falsy.map(calDate => calDate.date),
+            ranges: ranges.map(DateRange.fromGTFS)
+        }
     }
 
     toMGTFS (): MGTFSSchedule {
-        const options = { 
-            year: 'numeric', 
-            month: '2-digit', 
-            day: '2-digit' 
-        } as const
         return {
             service_id: this.serviceId,
-            additions: this.additions.map(
-                date => date.toLocaleDateString('en-CA', options)
-                    .replace(/\//g, '-')
-            ),
-            exceptions: this.exceptions.map(
-                date => date.toLocaleDateString('en-CA', options)
-                    .replace(/\//g, '-')
-            ),
+            additions: this.additions.map(formatDate),
+            exceptions: this.exceptions.map(formatDate),
             ranges: this.ranges.map(range => range.toMGTFS())
         }
     }

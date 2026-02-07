@@ -1,14 +1,17 @@
+import { formatDate, parseDate } from '../util'
+
+
 export type GTFSDateRange = {
     service_id: string
     end_date: string
-    friday: boolean
-    monday: boolean
-    saturday: boolean
+    friday: number
+    monday: number
+    saturday: number
     start_date: string
-    sunday: boolean
-    thursday: boolean
-    tuesday: boolean
-    wednesday: boolean
+    sunday: number
+    thursday: number
+    tuesday: number
+    wednesday: number
 }
 
 export type MGTFSDateRange = {
@@ -25,9 +28,9 @@ export default class DataRange {
     start: Date
 
     constructor (data: MGTFSDateRange) {
-        this.end = new Date(Date.parse(data.end))
+        this.end = parseDate(data.end)
         this.schedule = data.schedule
-        this.start = new Date(Date.parse(data.start))
+        this.start = parseDate(data.start)
     }
 
     static fromGTFS (data: GTFSDateRange): MGTFSDateRange {
@@ -43,22 +46,15 @@ export default class DataRange {
                 data.friday,
                 data.saturday,
                 data.sunday
-            ]
+            ].map(Boolean)
         }
     }
 
     toMGTFS (): MGTFSDateRange {
-        const options = { 
-            year: 'numeric', 
-            month: '2-digit', 
-            day: '2-digit' 
-        } as const
         return {
-            end: this.end.toLocaleDateString('en-CA', options)
-                .replace(/\//g, '-'),
+            end: formatDate(this.end),
             schedule: this.schedule,
-            start: this.start.toLocaleDateString('en-CA', options)
-                .replace(/\//g, '-'),
+            start: formatDate(this.start)
         }
     }
 }
