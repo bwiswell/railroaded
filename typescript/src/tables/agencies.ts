@@ -1,4 +1,4 @@
-import { loadList } from '../util/util'
+import { loadList } from '../util/csv'
 
 import type { Agency } from '../types/types'
 

@@ -1,9 +1,11 @@
 type SplitFilter<T> = (element: T) => boolean
 
+
 type SplitOutput<T> = {
     truthy: T[],
     falsy: T[]
 }
+
 
 export function split<T> (
             elements: T[], 

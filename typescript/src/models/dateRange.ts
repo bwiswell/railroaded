@@ -4,15 +4,16 @@ import { formatDate, parseDate } from '../util'
 export type GTFSDateRange = {
     service_id: string
     end_date: string
-    friday: number
-    monday: number
-    saturday: number
+    friday: string
+    monday: string
+    saturday: string
     start_date: string
-    sunday: number
-    thursday: number
-    tuesday: number
-    wednesday: number
+    sunday: string
+    thursday: string
+    tuesday: string
+    wednesday: string
 }
+
 
 export type MGTFSDateRange = {
     end: string
@@ -46,7 +47,7 @@ export default class DataRange {
                 data.friday,
                 data.saturday,
                 data.sunday
-            ].map(Boolean)
+            ].map(parseInt).map(Boolean)
         }
     }
 

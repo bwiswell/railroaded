@@ -85,8 +85,8 @@ class Route(s.Seared):
     '''the continuity of pickups along the route'''
     sort_idx: int = s.Int(data_key='route_sort_order', missing=0)
     '''the sort position index of the route'''
-    text_color: Optional[str] = s.Str(
-        data_key='route_text_color', missing='000000'
+    text_color: str = s.Str(
+        data_key='route_text_color', missing='000000', required=True
     )
     '''the color to use for text drawn against `Route.color`'''
     type: TransitType = s.Enum(

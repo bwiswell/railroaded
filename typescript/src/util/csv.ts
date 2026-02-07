@@ -46,17 +46,7 @@ export async function loadList<T extends {}> (
                     }
                 }
             }))
-            .on('data', (data: Partial<T>) => {
-                if (options.interpolateCols) {
-                    Object.keys(options.interpolateCols).forEach(
-                        col => {
-                            const func = options.interpolateCols![col]!
-                            data[col as keyof T] = func(data)
-                        }
-                    )
-                }
-                results.push(data)
-            })
+            .on('data', (data: Partial<T>) => results.push(data))
             .on('end', () => resolve(results as T[]))
             .on('error', (error: string) => reject(error))
     });

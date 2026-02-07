@@ -41,6 +41,29 @@ export const fromStopContinuity = fromEnumeration(stopContinuities)
 export const toStopContinuity = toEnumeration(stopContinuities)
 
 
+const stopTypes = [
+    'scheduled',
+    'none',
+    'via_phone',
+    'via_driver'
+] as const
+/**
+ * An enumeration describing the type of the stop.
+ */
+export type StopType = typeof stopTypes[number]
+export const fromStopType = fromEnumeration(stopTypes)
+export const toStopType = toEnumeration(stopTypes)
+
+
+const timepoints = ['approximate', 'exact'] as const
+/**
+ * An enumeration indicating if a stop time is exact or approximate.
+ */
+export type Timepoint = typeof timepoints[number]
+export const fromTimepoint = fromEnumeration(timepoints)
+export const toTimepoint = toEnumeration(timepoints)
+
+
 const transitTypes = [
     'light-rail', 
     'subway', 
