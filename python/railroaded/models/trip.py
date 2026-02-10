@@ -5,7 +5,6 @@ from typing import Optional
 import seared as s
 
 from .accessibility import Accessibility
-from .stop_time import StopTime
 from .timetable import Timetable
 
 

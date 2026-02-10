@@ -1,7 +1,7 @@
-import DateRange, { GTFSDateRange, MGTFSDateRange } from './dateRange'
-
 import type { GTFSCalendarDate } from '../types'
 import { formatDate, includesDay, parseDate, split } from '../util'
+
+import DateRange, { GTFSDateRange, MGTFSDateRange } from './dateRange'
 
 
 export type MGTFSSchedule = {

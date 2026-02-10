@@ -12,7 +12,8 @@ export {
     parseDate,
     parseOptionalDate,
     parseOptionalInt,
-    parseOptionalFloat
+    parseOptionalFloat,
+    parseTime
 } from './parse'
 
 export { split } from './split'

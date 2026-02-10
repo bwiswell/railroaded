@@ -18,6 +18,19 @@ export const fromAccessibility = fromEnumeration(accessibilities)
 export const toAccessibility = toEnumeration(accessibilities)
 
 
+const bikesAlloweds = [
+    'unknown',
+    'allowed',
+    'disallowed'
+] as const
+/**
+ * An enumeration indicating if bikes are allowed on a trip.
+ */
+export type BikesAllowed = typeof bikesAlloweds[number]
+export const fromBikesAllowed = fromEnumeration(bikesAlloweds)
+export const toBikesAllowed = toEnumeration(bikesAlloweds)
+
+
 const exceptionTypes = ['add', 'remove'] as const
 /**
  * An enumeration describing the type of a calendar date exception.
@@ -25,6 +38,21 @@ const exceptionTypes = ['add', 'remove'] as const
 export type ExceptionType = typeof exceptionTypes[number]
 export const fromExceptionType = fromEnumeration(exceptionTypes)
 export const toExceptionType = toEnumeration(exceptionTypes)
+
+
+const locationTypes = [
+    'stop_or_platform',
+    'station',
+    'entrance_or_exit',
+    'generic_node',
+    'boarding_area'
+] as const
+/**
+ * An enumeration describing the nature of a transit location.
+ */
+export type LocationType = typeof locationTypes[number]
+export const fromLocationType = fromEnumeration(locationTypes)
+export const toLocationType = toEnumeration(locationTypes)
 
 
 const stopContinuities = [

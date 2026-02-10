@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime, time
+from datetime import time
 from typing import Optional
 
 import seared as s
 
-from .stop_time import StopTime
+from ..models import StopTime
 
 
 @s.seared
@@ -39,7 +39,7 @@ class Timetable(s.Seared):
     @classmethod
     def from_gtfs (cls, stops: list[StopTime]) -> Timetable:
         '''
-        Returns an `Timetable` populated from `stops`.
+        Returns a `Timetable` populated from `stops`.
 
         Parameters:
             stops (list[StopTime]):
@@ -47,7 +47,7 @@ class Timetable(s.Seared):
 
         Returns:
             timetable (Timetable):
-                an `Timetable` populated from `stops`
+                a `Timetable` populated from `stops`
         '''
         return Timetable({ s.stop_id: s for s in stops })
 

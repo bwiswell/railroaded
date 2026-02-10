@@ -2,9 +2,6 @@ import csv from 'csv-parser'
 import fs from 'fs'
 
 
-
-
-
 type ParseOptions<T> = {
     interpolateCols?: { [key: string]: (record: Partial<T>) => any },
     intCols?: string[],

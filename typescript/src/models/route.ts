@@ -1,10 +1,10 @@
+import type { StopContinuity, TransitType } from "../types"
 import { 
     fromStopContinuity, 
     fromTransitType, 
     toStopContinuity, 
     toTransitType 
 } from "../types"
-import type { StopContinuity, TransitType } from "../types"
 import { parseOptionalInt } from '../util'
 
 

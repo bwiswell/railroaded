@@ -1,3 +1,4 @@
+import type { StopContinuity, StopType, Time, Timepoint } from '../types'
 import {
     fromStopContinuity,
     fromStopType,
@@ -6,8 +7,7 @@ import {
     toStopType,
     toTimepoint
 } from '../types'
-import { StopContinuity, StopType, Timepoint } from '../types'
-import { parseOptionalFloat, parseOptionalInt } from '../util'
+import { parseOptionalFloat, parseOptionalInt, parseTime } from '../util'
 
 
 export type GTFSStopTime = {
@@ -68,11 +68,13 @@ export default class StopTime {
     dropoffContinuity?: StopContinuity
     dropoffType?: StopType
     endPickupDropoff?: string
+    endTime: Time
     headsign?: string
     index: number
     pickupContinuity?: StopContinuity
     pickupType?: StopType
     startPickupDropoff?: string
+    startTime: Time
     timepoint: Timepoint
 
     constructor (data: MGTFSStopTime) {
@@ -98,6 +100,13 @@ export default class StopTime {
             toStopType(data.pickup_type): undefined
         this.startPickupDropoff = data.start_pickup_dropoff
         this.timepoint = toTimepoint(data.timepoint)
+
+        // TODO: This is 'guaranteed' only by the GTFS standard (which is
+        // poorly followed in many cases)
+        const endTimeString = (this.departureTime ?? this.endPickupDropoff)!
+        const startTimeString = (this.arrivalTime ?? this.startPickupDropoff)!
+        this.endTime = parseTime(endTimeString)
+        this.startTime = parseTime(startTimeString)
     }
 
     static fromGTFS (data: GTFSStopTime): MGTFSStopTime {

@@ -1,6 +1,8 @@
 export type {
     Accessibility,
+    BikesAllowed,
     ExceptionType,
+    LocationType,
     StopContinuity,
     StopType,
     Timepoint,
@@ -10,8 +12,12 @@ export type {
 export {
     fromAccessibility,
     toAccessibility,
+    fromBikesAllowed,
+    toBikesAllowed,
     fromExceptionType,
     toExceptionType,
+    fromLocationType,
+    toLocationType,
     fromStopContinuity,
     toStopContinuity,
     fromStopType,
@@ -26,3 +32,7 @@ export type {
     GTFSCalendar,
     GTFSCalendarDate
 } from './models'
+
+export type {
+    Time
+} from './time'
