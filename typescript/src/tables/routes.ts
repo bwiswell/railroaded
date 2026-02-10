@@ -1,11 +1,12 @@
-import { loadList } from '../util/csv'
+import { Route } from '../models'
+import type { GTFSRoute, MGTFSRoute } from '../models'
+import { loadList } from '../util'
 
-import { 
-    Route, 
-    routeName,
-    stopContinuity,
-    transitType
-} from '../types/types'
+
+export type MGTFSRoutes = {
+    data: Record<string, MGTFSRoute>
+}
+
 
 /**
  * Utility class for loading and accessing a table mapping `string` IDs to
@@ -22,10 +23,16 @@ export default class Routes {
     data: Record<string, Route>
     ids: string[]
 
-    constructor (data: Record<string, Route>) {
-        this.routes = Object.values(data)
-        this.data = data
-        this.ids = Object.keys(data)
+    constructor (data: MGTFSRoutes) {
+        this.data = Object.keys(data.data).reduce(
+            (prev, curr) => {
+                prev[curr] = new Route(data.data[curr]!)
+                return prev
+            },
+            {} as Record<string, Route>
+        )
+        this.routes = Object.values(this.data)
+        this.ids = Object.keys(this.data)
     }
 
     /**
@@ -36,44 +43,34 @@ export default class Routes {
      * @returns a `Promise` resolving to an `Routes` table populated from the
      * GTFS data at `path`
      */
-    static async from_gtfs (path: string): Promise<Routes> {
-        const routes = await loadList<Route>(
-            `${path}/routes.txt`,
-            {
-                interpolateCols: {
-                    'name': routeName
+    static async fromGTFS (path: string): Promise<MGTFSRoutes> {
+        const routes = await loadList<GTFSRoute>(`${path}/routes.txt`)
+            .then(gtfsRoutes => gtfsRoutes.map(
+                route => Route.fromGTFS(route)
+            ))
+        return {
+            data: routes.reduce(
+                (prev, curr) => {
+                    prev[curr.id] = curr
+                    return prev
                 },
-                intCols: ['sortIdx'],
-                renameCols: {
-                    'route_id': 'id',
-                    'agency_id': 'agencyId',
-                    'route_color': 'color',
-                    'route_desc': 'desc',
-                    'route_long_name': 'longName',
-                    'route_short_name': 'shortName',
-                    'route_sort_order': 'sortIdx',
-                    'route_text_color': 'textColor',
-                    'route_type': 'type',
-                    'route_url': 'url'
-                },
-                transformEnums: {
-                    'dropoffs': stopContinuity,
-                    'pickups': stopContinuity,
-                    'type': transitType
-                }
-
-            }
-        )
-        return new Routes(
-            routes.reduce(
-                (acc, Route) => {
-                    acc[Route.id] = Route
-                    return acc
-                },
-                {} as Record<string, Route>
+                {} as Record<string, MGTFSRoute>
             )
-        )
+        }
     }
+
+    toMGTFS (): MGTFSRoutes {
+        return {
+            data: Object.keys(this.data).reduce(
+                (prev, curr) => {
+                    prev[curr] = this.data[curr]!.toMGTFS()
+                    return prev
+                },
+                {} as Record<string, MGTFSRoute>
+            )
+        }
+    }
+
 
     /**
      * Returns the `Route` record with ID `id` if it exists, otherwise returns

@@ -1,6 +1,12 @@
-import { loadList } from '../util/csv'
+import type { GTFSAgency, MGTFSAgency } from '../models'
+import { Agency } from '../models'
+import { loadList } from '../util'
 
-import type { Agency } from '../types/types'
+
+export type MGTFSAgencies = {
+    data: Record<string, MGTFSAgency>
+}
+
 
 /**
  * Utility class for loading and accessing a table mapping `string` IDs to
@@ -20,56 +26,48 @@ export default class Agencies {
     data: Record<string, Agency>
     ids: string[]
 
-    constructor (data: Record<string, Agency>) {
-        this.agencies = Object.values(data)
-        this.data = data
-        this.ids = Object.keys(data)
+    constructor (data: MGTFSAgencies) {
+        this.data = Object.keys(data.data).reduce(
+            (prev, curr) => {
+                prev[curr] = new Agency(data.data[curr]!)
+                return prev
+            },
+            {} as Record<string, Agency>
+        )
+        this.agencies = Object.values(this.data)
+        this.ids = Object.keys(this.data)
     }
 
-    /**
-     * Asynchronously loads an `Agencies` table populated from the GTFS data at
-     * `path`.
-     *
-     * @param path - the path to the GTFS dataset
-     * @returns a `Promise` resolving to an `Agencies` table populated from the
-     * GTFS data at `path`
-     */
-    static async from_gtfs (path: string): Promise<Agencies> {
-        const agencies = await loadList<Agency>(
-            `${path}/agency.txt`,
-            {
-                renameCols: {
-                    'agency_id': 'id',
-                    'agency_email': 'email',
-                    'agency_fare_url': 'fareURL',
-                    'agency_lang': 'lang',
-                    'agency_name': 'name',
-                    'agency_phone': 'phone',
-                    'agency_timezone': 'timezone',
-                    'agency_url': 'url'
-                }
-            }
-        )
-        return new Agencies(
-            agencies.reduce(
-                (acc, agency) => {
-                    acc[agency.id] = agency
-                    return acc
+    
+    static async fromGTFS (path: string): Promise<MGTFSAgencies> {
+        const agencies = await loadList<GTFSAgency>(`${path}/agency.txt`)
+            .then(gtfsAgencies => gtfsAgencies.map(
+                agency => Agency.fromGTFS(agency)
+            ))
+        return {
+            data: agencies.reduce(
+                (prev, curr) => {
+                    prev[curr.id] = curr
+                    return prev
                 },
-                {} as Record<string, Agency>
+                {} as Record<string, MGTFSAgency>
             )
-        )
+        }
     }
 
-    /**
-     * Returns the `Agency` record with ID `id` if it exists, otherwise returns
-     * `undefined`.
-     * 
-     * @param id - the `string` id associated with the `Agency` record to 
-     * retrieve
-     * @returns the `Agency` record associated with `id` if it exists,
-     * otherwise `undefined`
-     */
+    toGTFS (): MGTFSAgencies {
+        return {
+            data: Object.keys(this.data).reduce(
+                (prev, curr) => {
+                    prev[curr] = this.data[curr]!.toMGTFS()
+                    return prev
+                },
+                {} as Record<string, MGTFSAgency>
+            )
+        }
+    }
+    
+
     get (id: string): Agency | undefined {
         return this.data[id]
     }

@@ -34,7 +34,7 @@ export type MGTFSAgency = {
  * @property timezone - the timezone where the transit agency is located
  * @property url - the URL of the transit agency
  */
-export class AFgency {
+export default class Agency {
 
     id: string
     email?: string
