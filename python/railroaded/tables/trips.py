@@ -16,12 +16,12 @@ class Trips(s.Seared):
     Serializable dataclass table mapping `str` IDs to `Trip` records.
 
     Attributes:
-        trips (list[Trip]):
-            a `list` of all `Trip` records in the `Trips` table
         data (dict[str, Trip]):
             a `dict` mapping `str` IDs to `Trip` records
         ids (list[str]):
             a `list` of all `str` IDs in the `Trips` table
+        trips (list[Trip]):
+            a `list` of all `Trip` records in the `Trips` table
     '''
 
     ### ATTRIBUTES ###

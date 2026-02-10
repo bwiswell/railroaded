@@ -149,7 +149,7 @@ class StopTime(s.Seared):
         '''the end time of the stop'''
         t = self._end_time_str
         return time(
-            hour = 0 if int(t[:2]) >= 24 else int(t[:2]),
+            hour = (int(t[:2]) >= 24) % 24,
             minute = int(t[3:5]),
             seconds = int(t[6:8])
         )
@@ -172,7 +172,7 @@ class StopTime(s.Seared):
         '''the start time of the stop'''
         t = self._start_time_str
         return time(
-            hour = 0 if int(t[:2]) >= 24 else int(t[:2]),
+            hour = (int(t[:2]) >= 24) % 24,
             minute = int(t[3:5]),
             seconds = int(t[6:8])
         )

@@ -28,7 +28,7 @@ mGTFS is a minimal representation of the parts of these tables relevant to queri
 
 ## Setup
 ```sh
-poetry add git+https://www.github.com/bwiswell/railroaded.git
+poetry add git+https://www.github.com/bwiswell/railroaded.git#subdirectory=python
 ```
 
 ## Usage

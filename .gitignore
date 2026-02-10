@@ -177,4 +177,8 @@ cython_debug/
 test.py
 
 # Local data
-railroaded/tmp/
+python/railroaded/tmp/
+node_modules
+
+# Useful snippets
+toolkit/**/*

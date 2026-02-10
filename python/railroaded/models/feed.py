@@ -53,11 +53,11 @@ class Feed(s.Seared):
     default_lang: Optional[str] = s.Str()
     '''the language to use when the rider's language is unknown'''
     end_date: Optional[date] = s.Date(
-        data_key='feed_end_date', format='%Y%m%d'
+        data_key='feed_end_date', format='%Y-%m-%d'
     )
     '''the end date of the information provided in the GTFS dataset'''
     start_date: Optional[date] = s.Date(
-        data_key='feed_start_date', format='%Y%m%d'
+        data_key='feed_start_date', format='%Y-%m-%d'
     )
     '''the start date of the information provided in the GTFS dataset'''
     version: str = s.Str(data_key='feed_version')
