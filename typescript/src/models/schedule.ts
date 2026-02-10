@@ -1,7 +1,7 @@
-import type { GTFSCalendarDate } from '../types'
+import type { GTFSCalendar, GTFSCalendarDate } from '../types'
 import { formatDate, includesDay, parseDate, split } from '../util'
 
-import DateRange, { GTFSDateRange, MGTFSDateRange } from './dateRange'
+import DateRange, { MGTFSDateRange } from './dateRange'
 
 
 export type MGTFSSchedule = {
@@ -47,18 +47,19 @@ export default class Schedule {
 
     static fromGTFS (
                 serviceId: string,
-                ranges: GTFSDateRange[],
-                calDates: GTFSCalendarDate[]
+                calendars: GTFSCalendar[],
+                dates: GTFSCalendarDate[]
             ): MGTFSSchedule {
+        const ranges = calendars.map(DateRange.fromGTFS)
         const splitExceptions = split(
-            calDates, 
-            calDate => calDate.exception_type === 1
+            dates, 
+            date => date.exception_type === '1'
         )
         return {
             service_id: serviceId,
             additions: splitExceptions.truthy.map(calDate => calDate.date),
             exceptions: splitExceptions.falsy.map(calDate => calDate.date),
-            ranges: ranges.map(DateRange.fromGTFS)
+            ranges
         }
     }
 

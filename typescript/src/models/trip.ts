@@ -40,7 +40,7 @@ export type MGTFSTrip = {
 }
 
 
-export class Trip {
+export default class Trip {
 
     id: string
     blockId?: string

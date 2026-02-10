@@ -1,14 +1,10 @@
 export { loadList } from './csv'
 
-export { 
-    includesDay, 
-    isSameDay, 
-} from './date'
+export { includesDay, isSameDay } from './date'
 
-export {
-    formatDate, 
-    formatOptionalDate
-} from './format'
+export { default as filterObject } from './filterObject'
+
+export { formatDate, formatOptionalDate } from './format'
 
 export {
     parseDate,
@@ -18,4 +14,6 @@ export {
     parseTime
 } from './parse'
 
-export { split } from './split'
+export { default as split } from './split'
+
+export { default as unique } from './unique'

@@ -7,7 +7,7 @@ type SplitOutput<T> = {
 }
 
 
-export function split<T> (
+export default function split<T> (
             elements: T[], 
             filter: SplitFilter<T>
         ): SplitOutput<T> {

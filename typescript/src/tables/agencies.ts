@@ -19,9 +19,7 @@ export type MGTFSAgencies = {
  * @see Agency
  */
 export default class Agencies {
-    /**
-     * 
-     */
+    
     agencies: Agency[]
     data: Record<string, Agency>
     ids: string[]

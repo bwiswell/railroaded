@@ -19,6 +19,7 @@ export type MGTFSRoutes = {
  * @see Route
  */
 export default class Routes {
+    
     routes: Route[]
     data: Record<string, Route>
     ids: string[]
