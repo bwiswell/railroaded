@@ -9,6 +9,11 @@
   dependencies:
     undici-types "~7.16.0"
 
+"@zip.js/zip.js@^2.8.19":
+  version "2.8.19"
+  resolved "https://registry.yarnpkg.com/@zip.js/zip.js/-/zip.js-2.8.19.tgz#e989decee4be0a7634efd7845b86c36b10375813"
+  integrity sha512-GqYlOH4FsIM+vDaYPlQGgLlsyOuO3MPwof/VE/ZFarL4TrbvajGlX/RORFHKlZZUzvv6UiCU73WdfKBvSpEtGA==
+
 csv-parser@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/csv-parser/-/csv-parser-3.2.0.tgz#7e5515e3763e963dc8660dc9dcfc3f0eaf72b0a9"

@@ -32,11 +32,11 @@ export default class Trips {
     }
 
     
-    static async fromGTFS (path: string): Promise<MGTFSTrips> {
-        const stopTimes = await loadList<GTFSStopTime>(
-            `${path}/stop_times.txt`
-        )
-        const trips = await loadList<GTFSTrip>(`${path}/trip.txt`)
+    static async fromGTFS (
+                data: Record<string, string>
+            ): Promise<MGTFSTrips> {
+        const stopTimes = await loadList<GTFSStopTime>(data['stop_times.txt']!)
+        const trips = await loadList<GTFSTrip>(data['trips.txt']!)
 
         return {
             data: trips.reduce(

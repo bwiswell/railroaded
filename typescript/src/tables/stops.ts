@@ -40,8 +40,10 @@ export default class Stops {
     }
 
     
-    static async fromGTFS (path: string): Promise<MGTFSStops> {
-        const stops = await loadList<GTFSStop>(`${path}/stop.txt`)
+    static async fromGTFS (
+                data: Record<string, string>
+            ): Promise<MGTFSStops> {
+        const stops = await loadList<GTFSStop>(data['stops.txt']!)
             .then(gtfsStops => gtfsStops.map(
                 stop => Stop.fromGTFS(stop)
             ))

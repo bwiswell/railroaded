@@ -4,7 +4,7 @@ import type { GTFSCalendar, GTFSCalendarDate } from '../types'
 import { loadList, unique } from '../util'
 
 
-export type MGTFSRoutes = {
+export type MGTFSSchedules = {
     data: Record<string, MGTFSSchedule>
 }
 
@@ -25,7 +25,7 @@ export default class Schedules {
     data: Record<string, Schedule>
     serviceIds: string[]
 
-    constructor (data: MGTFSRoutes) {
+    constructor (data: MGTFSSchedules) {
         this.data = Object.keys(data.data).reduce(
             (prev, curr) => {
                 prev[curr] = new Schedule(data.data[curr]!)
@@ -45,10 +45,12 @@ export default class Schedules {
      * @returns a `Promise` resolving to an `Schedules` table populated from
      * the GTFS data at `path`
      */
-    static async fromGTFS (path: string): Promise<MGTFSRoutes> {
-        const calendars = await loadList<GTFSCalendar>(`${path}/calendar.txt`)
+    static async fromGTFS (
+                data: Record<string, string>
+            ): Promise<MGTFSSchedules> {
+        const calendars = await loadList<GTFSCalendar>(data['calendar.txt']!)
         const dates = await loadList<GTFSCalendarDate>(
-            `${path}/calendar_dates.txt`
+            data['calendar_dates.txt']!
         )
         const serviceIds = unique(calendars.map(cal => cal.service_id))
         return {
@@ -66,7 +68,7 @@ export default class Schedules {
         }  
     }
 
-    toMGTFS (): MGTFSRoutes {
+    toMGTFS (): MGTFSSchedules {
         return {
             data: Object.keys(this.data).reduce(
                 (prev, curr) => {

@@ -17,3 +17,5 @@ export {
 export { default as split } from './split'
 
 export { default as unique } from './unique'
+
+export { default as unzip } from './unzip'

@@ -37,8 +37,10 @@ export default class Agencies {
     }
 
     
-    static async fromGTFS (path: string): Promise<MGTFSAgencies> {
-        const agencies = await loadList<GTFSAgency>(`${path}/agency.txt`)
+    static async fromGTFS (
+                data: Record<string, string>
+            ): Promise<MGTFSAgencies> {
+        const agencies = await loadList<GTFSAgency>(data['agency.txt']!)
             .then(gtfsAgencies => gtfsAgencies.map(
                 agency => Agency.fromGTFS(agency)
             ))

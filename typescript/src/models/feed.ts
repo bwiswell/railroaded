@@ -1,4 +1,4 @@
-import { formatOptionalDate, parseOptionalDate } from '../util'
+import { formatOptionalDate, loadList, parseOptionalDate } from '../util'
 
 
 export type GTFSFeed = {
@@ -51,17 +51,18 @@ export default class Feed {
         this.version = data.version
     }
 
-    static fromGTFS (data: GTFSFeed): MGTFSFeed {
+    static async fromGTFS (data: Record<string, string>): Promise<MGTFSFeed> {
+        const feed = (await loadList<GTFSFeed>(data['feed_info.txt']!))[0]!
         return {
-            contact_email: data.feed_contact_email,
-            contact_url: data.feed_contact_url,
-            default_lang: data.default_lang,
-            end_date: data.feed_end_date,
-            lang: data.feed_lang,
-            publisher_name: data.publisher_name,
-            publisher_url: data.publisher_url,
-            start_date: data.feed_start_date,
-            version: data.feed_version
+            contact_email: feed.feed_contact_email,
+            contact_url: feed.feed_contact_url,
+            default_lang: feed.default_lang,
+            end_date: feed.feed_end_date,
+            lang: feed.feed_lang,
+            publisher_name: feed.publisher_name,
+            publisher_url: feed.publisher_url,
+            start_date: feed.feed_start_date,
+            version: feed.feed_version
         }
     }
 

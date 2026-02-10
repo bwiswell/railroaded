@@ -1,5 +1,7 @@
 export type { GTFSAgency, MGTFSAgency } from './agency'
 export { default as Agency } from './agency'
+export type { MGTFSFeed } from './feed'
+export { default as Feed } from './feed'
 export type { GTFSRoute, MGTFSRoute } from './route'
 export { default as Route } from './route'
 export type { MGTFSSchedule } from './schedule'

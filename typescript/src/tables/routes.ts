@@ -44,8 +44,10 @@ export default class Routes {
      * @returns a `Promise` resolving to an `Routes` table populated from the
      * GTFS data at `path`
      */
-    static async fromGTFS (path: string): Promise<MGTFSRoutes> {
-        const routes = await loadList<GTFSRoute>(`${path}/routes.txt`)
+    static async fromGTFS (
+                data: Record<string, string>
+            ): Promise<MGTFSRoutes> {
+        const routes = await loadList<GTFSRoute>(data['routes.txt']!)
             .then(gtfsRoutes => gtfsRoutes.map(
                 route => Route.fromGTFS(route)
             ))
