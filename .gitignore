@@ -178,6 +178,8 @@ test.py
 
 # Local data
 python/railroaded/tmp/
+python/tests/septa_cache.json
+python/tests/septa_cache.pkl
 node_modules
 
 # Useful snippets

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date as pydate, datetime
+from datetime import date as pydate, datetime, timedelta
 import json
 import os
 import shutil
@@ -180,25 +180,61 @@ class GTFS(s.Seared):
     
     def between (self, start: datetime, end: datetime) -> GTFS:
         '''
-        Returns a `GTFS` object containing only the trips with `Timetable`s
-        containing entries between the given `start` and `end` datetimes.
+        Returns a `GTFS` object containing only the trips whose real datetime
+        range overlaps with the `[start, end]` window.
 
-        The time component of each `datetime` is extracted and used to filter
-        trips; the date component is ignored. To filter by date as well, chain
-        with `on_date`.
+        Both the date and time components of `start` and `end` are respected:
+
+        - Only trips active on a service date that falls within (or one day
+          before) the query window are considered, so trips scheduled on the
+          wrong day are excluded.
+        - Trips that cross midnight are handled correctly: a trip whose raw
+          GTFS times run from 23:00 to 25:30 (i.e. 01:30 the following
+          calendar day) is captured by a window such as
+          `[Jan 6 23:00, Jan 7 01:00]`.
+
+        Implementation note: the previous calendar day is always included as a
+        candidate service date so that overnight trips whose service date is the
+        day before the window's start can still be captured.
 
         Parameters:
             start (datetime):
-                the beginning of the time window
+                the beginning of the query window (date + time)
             end (datetime):
-                the end of the time window
+                the end of the query window (date + time)
 
         Returns:
             gtfs (GTFS):
-                a `GTFS` object containing only the trips with `Timetable`s
-                containing entries between the given `start` and `end` times
+                a `GTFS` object containing only the matching trips
         '''
-        return self._ref(self.trips.between(start.time(), end.time()))
+        # Collect candidate service dates.  Always include the day before the
+        # window start so overnight trips that began on the prior calendar date
+        # but extend into the window are not missed.
+        candidate_dates: list[pydate] = []
+        d = start.date() - timedelta(days=1)
+        while d <= end.date():
+            candidate_dates.append(d)
+            d += timedelta(days=1)
+
+        # Map each service_id to the subset of candidate dates it is active on.
+        service_date_map: dict[str, list[pydate]] = {}
+        for d in candidate_dates:
+            for sid in self.schedules.on_date(d):
+                if sid not in service_date_map:
+                    service_date_map[sid] = []
+                service_date_map[sid].append(d)
+
+        # For each trip, check whether any of its active service dates produce
+        # a real datetime window that overlaps [start, end].
+        matching: dict[str, object] = {}
+        for trip in self.trips.trips:
+            service_dates = service_date_map.get(trip.service_id, [])
+            for service_date in service_dates:
+                if trip.between_datetime(service_date, start, end):
+                    matching[trip.id] = trip
+                    break
+
+        return self._ref(Trips(matching))
     
     def connecting (self, stop_a_id: str, stop_b_id: str) -> GTFS:
         '''

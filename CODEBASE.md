@@ -136,21 +136,51 @@ railroaded/
 
 ---
 
-## `between()` — datetime vs time resolution
+## `between()` — date-aware datetime filtering
 
-The `GTFS.between()` facade method accepts **`datetime` objects** (combining date + time). The underlying tables (`Trips`, `Trip`, `Timetable`) work with Python `time` objects. The conflict is resolved in `gtfs.py` by extracting the time component before delegating:
+`GTFS.between(start: datetime, end: datetime)` accepts `datetime` objects and
+correctly uses **both** the date and time portions:
+
+### Date handling
+- Only trips whose service schedule is active on a date within (or one day
+  before) the query window are considered.
+- The "one day before" extension is intentional: it captures **overnight trips**
+  whose service date is the calendar day before the window starts but whose
+  real running time extends into the window.
+
+### Overnight trip handling
+GTFS encodes times past midnight as hours ≥ 24 (e.g. `25:30` = 01:30 the
+following day). The stored `stop_time.end_time` is already reduced to `HH%24`
+and `end_offset=True` marks the crossing. `Timetable.between_datetime()` and
+`Trip.between_datetime()` reconstruct real `datetime` values for each trip:
 
 ```python
-def between(self, start: datetime, end: datetime) -> GTFS:
-    return self._ref(self.trips.between(start.time(), end.time()))
+real_end = datetime.combine(service_date, timetable.end.end_time)
+if timetable.end.end_offset:
+    real_end += timedelta(days=1)
 ```
 
-This means `between()` ignores the date part of the arguments. To restrict to a specific day, chain with `on_date()`:
+Overlap is then: `real_start <= end and real_end >= start`.
 
+### Implementation
+The logic lives in three layers:
+- **`Timetable.between_datetime(service_date, start, end)`** — computes real
+  datetimes and checks overlap (anchored to `service_date`)
+- **`Trip.between_datetime(service_date, start, end)`** — delegates to timetable
+- **`GTFS.between(start, end)`** — orchestrates: builds candidate service dates
+  (prev_day…end_date), resolves active service IDs per date via
+  `schedules.on_date()`, then calls `trip.between_datetime()` for each match
+
+### Legacy time-only methods
+`Timetable.between(start: time, end: time)`, `Trip.between(...)`, and
+`Trips.between(...)` remain for internal use but do not handle overnight trips
+correctly. Use `GTFS.between()` for all production queries.
+
+### Chaining
 ```python
-gtfs.on_date(date(2025, 1, 6)).between(
-    datetime(2025, 1, 6, 8, 0),
-    datetime(2025, 1, 6, 9, 0)
+gtfs.on_date(date(2026, 4, 7)).between(
+    datetime(2026, 4, 7, 8, 0),
+    datetime(2026, 4, 7, 9, 0)
 )
 ```
 
@@ -165,7 +195,9 @@ cd python
 poetry run pytest tests/ -v
 ```
 
-The session-scoped `septa` fixture downloads the GTFS feed on the first run and writes a cache file (`tests/septa_cache.json`) so subsequent runs skip the network download.
+The session-scoped `septa` fixture downloads the GTFS feed on the first run and writes a pickle cache (`tests/septa_cache.pkl`, gitignored) so subsequent runs skip the network download.
+
+**Note:** the mGTFS JSON cache (`GTFS.save` / `GTFS.read` with `mgtfs_path`) is not used for testing because seared's `T(keyed=True)` field has a bug in its `dump` serialiser — it calls `schema.dump(parent_object.data)` instead of serialising individual dict values, producing empty tables. This is a bug in the upstream `seared` library and is tracked as a known limitation below.
 
 **Test classes:**
 
@@ -245,6 +277,11 @@ All issues from the initial code review have been fixed:
 
 ## Remaining Known Limitations
 
+- **mGTFS save/load broken**: `GTFS.save()` / `GTFS.read(mgtfs_path=...)` use
+  `seared.T(keyed=True)` which has a dump bug — the serialize function receives
+  the parent object instead of individual dict values, producing empty tables in
+  the JSON output. Loading from a saved mGTFS file therefore fails. Fix requires
+  patching `seared`.
 - No ZIP-slip protection when extracting remote GTFS archives (`gtfs.py:121-130`)
 - `urlretrieve()` has no timeout or file-size limit
 - TypeScript has no test suite

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import time
+from datetime import date as pydate, datetime, time, timedelta
 from typing import Optional
 
 import seared as s
@@ -99,7 +99,10 @@ class Timetable(s.Seared):
     def between (self, start: time, end: time) -> bool:
         '''
         Returns a `bool` indicating if the `Timetable` contains entries between
-        the given `start` and `end` times.
+        the given `start` and `end` times (time-only, no date context).
+
+        Note: this method does not handle trips that cross midnight correctly.
+        Use `between_datetime` when a service date is available.
 
         Parameters:
             start (time):
@@ -113,6 +116,43 @@ class Timetable(s.Seared):
                 the given `start` and `end` times
         '''
         return self.start.start_time <= end and self.end.end_time >= start
+
+    def between_datetime (
+                self,
+                service_date: pydate,
+                start: datetime,
+                end: datetime
+            ) -> bool:
+        '''
+        Returns a `bool` indicating if the `Timetable` contains entries that
+        overlap with the given `[start, end]` datetime window, correctly
+        accounting for trips that cross midnight.
+
+        Each stop time is anchored to `service_date`: times with hours >= 24
+        in the raw GTFS data (flagged by `start_offset` / `end_offset`) are
+        placed on `service_date + 1 day`.
+
+        Parameters:
+            service_date (date):
+                the calendar date on which the trip is scheduled to run
+            start (datetime):
+                the beginning of the query window
+            end (datetime):
+                the end of the query window
+
+        Returns:
+            between (bool):
+                `True` if the trip's real datetime range overlaps `[start, end]`
+        '''
+        real_start = datetime.combine(service_date, self.start.start_time)
+        if self.start.start_offset:
+            real_start += timedelta(days=1)
+
+        real_end = datetime.combine(service_date, self.end.end_time)
+        if self.end.end_offset:
+            real_end += timedelta(days=1)
+
+        return real_start <= end and real_end >= start
 
     def connects (self, stop_a_id: str, stop_b_id: str) -> bool:
         '''
