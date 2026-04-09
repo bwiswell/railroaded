@@ -1,12 +1,12 @@
 # railroaded — Codebase Reference
 
-> Last updated: 2026-04-08 | Branch: version/0.2.1 | Version: **0.2.1**
+> Last updated: 2026-04-09 | Branch: version/0.3.0 | Version: **0.3.0**
 
 ---
 
 ## What This Project Does
 
-`railroaded` is a dual-language (Python + TypeScript) library for fetching, parsing, and querying **GTFS (General Transit Feed Specification)** data. It converts verbose GTFS CSV datasets into a minified **mGTFS JSON** format for efficient local querying of transit information: agencies, routes, stops, trips, and schedules.
+`railroaded` is a dual-language (Python + TypeScript) library for fetching, parsing, and querying **GTFS (General Transit Feed Specification)** data. It converts verbose GTFS CSV datasets into a minified **mGTFS JSON** format for efficient local querying of transit information: agencies, routes, stops, trips, schedules, and (optionally) shape polyline geometry.
 
 **Primary use case:** Download a GTFS ZIP (or load a local file), parse it into structured models, then query it — e.g., "what trips run on this route today?" or "what stops connect route A to route B?"
 
@@ -49,6 +49,8 @@ GTFS (entry-point facade)
 | `DateRange` | `calendar.txt` | One weekly-schedule entry with inclusive date bounds |
 | `Calendar` | `calendar.txt` | Recurring day-of-week record (parsed into `DateRange`) |
 | `CalendarDate` | `calendar_dates.txt` | One-off schedule additions/exceptions |
+| `ShapePoint` | `shapes.txt` | One point in a shape polyline (lat, lon, sequence) |
+| `Shape` | `shapes.txt` | Ordered polyline of `ShapePoint` records for a single shape_id |
 
 ### Tables
 
@@ -59,12 +61,13 @@ GTFS (entry-point facade)
 | `Stops` | `dict[str, Stop]` | `ids`, `stops`, `__getitem__` |
 | `Trips` | `dict[str, Trip]` | `ids`, `trips`, filter by route/stop/date/time |
 | `Schedules` | `dict[str, Schedule]` | `service_ids`, `on_date()`, `__getitem__` |
+| `Shapes` | `dict[str, Shape]` | `ids`, `shapes`, `__getitem__`; opt-in via `shapes=True` on `GTFS.read()` |
 
 ### Entry Point: `GTFS` class
 
 | Method | Signature | Purpose |
 |--------|-----------|---------|
-| `read` | `(name, gtfs_path?, gtfs_sub?, gtfs_uri?, mgtfs_path?)` | Download/extract/parse GTFS or load mGTFS JSON cache |
+| `read` | `(name, gtfs_path?, gtfs_sub?, gtfs_uri?, mgtfs_path?, shapes=False)` | Download/extract/parse GTFS or load mGTFS JSON cache; `shapes=True` loads shapes.txt polyline geometry |
 | `save` | `(gtfs, mgtfs_path)` | Serialise to mGTFS JSON file |
 | `on_date` | `(date)` | Filter trips active on a given calendar date |
 | `today` | `()` | Shorthand for `on_date(date.today())` |
@@ -97,22 +100,27 @@ railroaded/
 │   │   │   ├── feed.py              # Feed (optional feed_info.txt)
 │   │   │   ├── route.py             # Route + TransitType enum
 │   │   │   ├── schedule.py          # Schedule: active() + date-range aggregation
+│   │   │   ├── shape.py             # Shape: ordered polyline of ShapePoints
+│   │   │   ├── shape_point.py       # ShapePoint: one lat/lon/sequence point
 │   │   │   ├── stop.py              # Stop + LocationType enum
 │   │   │   ├── stop_continuity.py   # StopContinuity enum
-│   │   │   ├── stop_time.py         # StopTime + GTFS time parsing (hours ≥ 24)
-│   │   │   ├── timetable.py         # Timetable: ordered stop→StopTime map
+│   │   │   ├── stop_time.py         # StopTime + GTFS time parsing (hours >= 24)
+│   │   │   ├── timetable.py         # Timetable: ordered stop->StopTime map
 │   │   │   └── trip.py              # Trip + BikesAllowed enum
 │   │   └── tables/
 │   │       ├── __init__.py
 │   │       ├── agencies.py
 │   │       ├── routes.py
 │   │       ├── schedules.py         # Handles missing calendar.txt / calendar_dates.txt
+│   │       ├── shapes.py            # Shapes: groups ShapePoints by shape_id; from_gtfs()
 │   │       ├── stops.py
 │   │       └── trips.py
 │   └── tests/
 │       ├── conftest.py              # Session-scoped SEPTA fixture (downloads + mGTFS cache)
 │       ├── septa_cache.json         # mGTFS cache (gitignored, generated on first run)
-│       └── test_gtfs.py             # 31 integration tests
+│       ├── test_gtfs.py             # 31 integration tests
+│       ├── test_patco.py            # 16 PATCO integration tests
+│       └── test_shapes.py           # 14 shapes.txt tests (opt-in, serialisation, backward compat)
 ├── typescript/
 │   └── src/
 │       ├── gtfs.ts                  # GTFS facade class
@@ -129,6 +137,28 @@ railroaded/
 ├── package.json                     # version 0.2.1
 └── tsconfig.json
 ```
+
+---
+
+## Opt-in shapes.txt support
+
+`GTFS.read(..., shapes=True)` loads `shapes.txt` (polyline geometry for each trip's geographic path) into a `Shapes` table. When `shapes=False` (default), the table is empty, keeping memory and mGTFS cache size minimal.
+
+```python
+# Without shapes (default — lightweight)
+gtfs = rr.GTFS.read(name='SEPTA', gtfs_uri=uri, mgtfs_path=cache)
+
+# With shapes (for map rendering)
+gtfs = rr.GTFS.read(name='SEPTA', gtfs_uri=uri, mgtfs_path=cache, shapes=True)
+
+# Access shape geometry for a trip
+shape = gtfs.shapes[trip.shape_id]
+if shape:
+    for pt in shape.points:
+        print(pt.lat, pt.lon, pt.sequence)
+```
+
+The mGTFS cache includes shapes data only when originally saved with shapes loaded. Existing caches without a `shapes` key load with an empty table (backward compatible). Feeds that lack `shapes.txt` also produce an empty table regardless of the flag.
 
 ---
 
@@ -235,3 +265,4 @@ All issues from the initial code review were resolved in 0.2.1. A further seared
 - TypeScript implementation has no test suite
 - Some non-null assertions (`!`) remain in TypeScript tables/util (low risk — data validated upstream)
 - `Timetable.between(start: time, end: time)` and `Trip.between(...)` do not handle overnight trips correctly; use `GTFS.between(datetime, datetime)` for all production queries
+- Shapes support is Python-only; TypeScript implementation does not yet parse `shapes.txt`

@@ -76,7 +76,7 @@ class TestLoad:
         assert len(septa.schedules.service_ids) > 0
 
     def test_version(self) -> None:
-        assert rr.__version__ == '0.2.1'
+        assert rr.__version__ == '0.3.0'
 
 
 # ===========================================================================

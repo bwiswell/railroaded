@@ -4,6 +4,8 @@ from .calendar_date import CalendarDate
 from .feed import Feed
 from .route import Route
 from .schedule import Schedule
+from .shape import Shape
+from .shape_point import ShapePoint
 from .stop import Stop
 from .stop_time import StopTime
 from .timetable import Timetable

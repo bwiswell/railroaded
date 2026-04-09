@@ -181,6 +181,7 @@ python/railroaded/tmp/
 python/tests/septa_cache.json
 python/tests/septa_cache.pkl
 python/tests/patco_cache.json
+python/tests/patco_shapes_cache.json
 node_modules
 
 # Useful snippets
