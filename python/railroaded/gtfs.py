@@ -161,7 +161,7 @@ class GTFS(s.Seared):
             mgtfs_path (str):
                 the `.json` file to dump the `GTFS` object to
         '''
-        data = GTFS.SCHEMA.dump(gtfs)
+        data = GTFS.dump(gtfs)
         with open(mgtfs_path, 'w') as file:
             json.dump(data, file)
 

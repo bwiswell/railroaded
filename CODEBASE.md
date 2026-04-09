@@ -1,6 +1,6 @@
-# Railroaded — Codebase Overview
+# railroaded — Codebase Reference
 
-> Last updated: 2026-04-08 | Branch: version/0.2.1 | Current version: **0.2.1**
+> Last updated: 2026-04-08 | Branch: version/0.2.1 | Version: **0.2.1**
 
 ---
 
@@ -16,7 +16,7 @@
 
 | Language | Key Dependencies | Build Tool |
 |----------|-----------------|------------|
-| Python 3.11+ | `pandas ^2.2.3`, `seared` (git dep, marshmallow-based) | Poetry |
+| Python 3.11+ | `pandas ^2.2.3`, `seared` (local path dep, `../../seared`) | Poetry |
 | TypeScript 5.9.3 | `@zip.js/zip.js ^2.8.19`, `csv-parser ^3.2.0` | tsc |
 
 **Dev dependencies:** `pytest ^8.0` (Python)
@@ -28,10 +28,10 @@
 Both implementations mirror each other and follow a three-layer design:
 
 ```
-GTFS (entry point facade)
-    └── Tables (collections of models, dict-based O(1) lookup)
-            └── Models (individual GTFS entities with serialization)
-                    └── Utils (CSV parsing, ZIP extraction, date/time helpers)
+GTFS (entry-point facade)
+    └── Tables (collections of models, dict-based O(1) lookup by ID)
+            └── Models (individual GTFS entities with seared serialisation)
+                    └── Utils (CSV/ZIP loading, split helper)
 ```
 
 ### Models
@@ -44,33 +44,34 @@ GTFS (entry point facade)
 | `Stop` | `stops.txt` | Physical stop/station |
 | `Trip` | `trips.txt` | A single trip on a route |
 | `StopTime` | `stop_times.txt` | Arrival/departure times per stop per trip |
-| `Timetable` | (derived) | Ordered stop→StopTime map for a trip |
+| `Timetable` | (derived) | Ordered `stop_id → StopTime` map for a trip |
 | `Schedule` | (derived) | Date-range + day-of-week service calendar |
-| `DateRange` | `calendar.txt` | Service active date ranges |
-| `Calendar` | `calendar.txt` | Recurring day-of-week schedules |
+| `DateRange` | `calendar.txt` | One weekly-schedule entry with inclusive date bounds |
+| `Calendar` | `calendar.txt` | Recurring day-of-week record (parsed into `DateRange`) |
 | `CalendarDate` | `calendar_dates.txt` | One-off schedule additions/exceptions |
 
 ### Tables
 
-| Table | Stores | Key Methods |
+| Table | Stores | Key methods |
 |-------|--------|-------------|
-| `Agencies` | `Agency[]` | By ID |
-| `Routes` | `Route[]` | By ID |
-| `Stops` | `Stop[]` | By ID |
-| `Trips` | `Trip[]` | By ID; filter by route, stop, date, time window |
-| `Schedules` | `Schedule[]` | By service ID; filter by date |
+| `Agencies` | `dict[str, Agency]` | `ids`, `agencies`, `__getitem__` |
+| `Routes` | `dict[str, Route]` | `ids`, `routes`, `__getitem__` |
+| `Stops` | `dict[str, Stop]` | `ids`, `stops`, `__getitem__` |
+| `Trips` | `dict[str, Trip]` | `ids`, `trips`, filter by route/stop/date/time |
+| `Schedules` | `dict[str, Schedule]` | `service_ids`, `on_date()`, `__getitem__` |
 
 ### Entry Point: `GTFS` class
 
-Methods:
-- `read(name, gtfs_path, gtfs_sub, gtfs_uri, mgtfs_path)` — download/extract/parse GTFS or load mGTFS JSON
-- `save(gtfs, mgtfs_path)` — write mGTFS JSON to disk
-- `between(start: datetime, end: datetime)` — filter trips with timetables overlapping the window (time component used; date ignored)
-- `connecting(stop_a_id, stop_b_id)` — find trips that pass through both stops in order
-- `on_date(date)` — filter trips active on a given date
-- `on_route(route_id)` — filter trips on a route
-- `through(stop_id)` — filter trips through a stop
-- `today()` — shorthand for `on_date(date.today())`
+| Method | Signature | Purpose |
+|--------|-----------|---------|
+| `read` | `(name, gtfs_path?, gtfs_sub?, gtfs_uri?, mgtfs_path?)` | Download/extract/parse GTFS or load mGTFS JSON cache |
+| `save` | `(gtfs, mgtfs_path)` | Serialise to mGTFS JSON file |
+| `on_date` | `(date)` | Filter trips active on a given calendar date |
+| `today` | `()` | Shorthand for `on_date(date.today())` |
+| `on_route` | `(route_id)` | Filter trips on a route |
+| `through` | `(stop_id)` | Filter trips through a stop |
+| `connecting` | `(stop_a_id, stop_b_id)` | Filter trips passing both stops in order |
+| `between` | `(start: datetime, end: datetime)` | Filter trips whose real datetime range overlaps the window |
 
 ---
 
@@ -78,59 +79,54 @@ Methods:
 
 ```
 railroaded/
+├── CODEBASE.md
 ├── python/
-│   └── railroaded/
-│       ├── __init__.py          # Package init, version string
-│       ├── gtfs.py              # GTFS facade class
-│       ├── models/
-│       │   ├── agency.py
-│       │   ├── calendar.py      # Calendar + weekday schedule list
-│       │   ├── calendar_date.py # CalendarDate + ExceptionType enum
-│       │   ├── date_range.py    # DateRange model
-│       │   ├── feed.py          # Feed (optional feed_info.txt)
-│       │   ├── route.py
-│       │   ├── schedule.py      # Schedule: active() + date range aggregation
-│       │   ├── stop.py
-│       │   ├── stop_time.py     # StopTime + time parsing
-│       │   ├── timetable.py     # Timetable (ordered stop→StopTime)
-│       │   └── trip.py
-│       ├── tables/
-│       │   ├── agencies.py
-│       │   ├── routes.py
-│       │   ├── schedules.py     # Handles missing calendar.txt / calendar_dates.txt
-│       │   ├── stops.py
-│       │   └── trips.py
-│       └── util.py              # CSV loading, type helpers, file-existence checks
+│   ├── pyproject.toml               # Python 3.11+, version 0.2.1
+│   ├── poetry.lock
+│   ├── railroaded/
+│   │   ├── __init__.py              # Package init, version string
+│   │   ├── gtfs.py                  # GTFS facade class
+│   │   ├── util.py                  # load_list() (CSV→schema.load), split()
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── accessibility.py     # Accessibility enum
+│   │   │   ├── agency.py            # Agency model
+│   │   │   ├── calendar.py          # Calendar + weekday schedule list
+│   │   │   ├── calendar_date.py     # CalendarDate + ExceptionType enum
+│   │   │   ├── date_range.py        # DateRange model
+│   │   │   ├── feed.py              # Feed (optional feed_info.txt)
+│   │   │   ├── route.py             # Route + TransitType enum
+│   │   │   ├── schedule.py          # Schedule: active() + date-range aggregation
+│   │   │   ├── stop.py              # Stop + LocationType enum
+│   │   │   ├── stop_continuity.py   # StopContinuity enum
+│   │   │   ├── stop_time.py         # StopTime + GTFS time parsing (hours ≥ 24)
+│   │   │   ├── timetable.py         # Timetable: ordered stop→StopTime map
+│   │   │   └── trip.py              # Trip + BikesAllowed enum
+│   │   └── tables/
+│   │       ├── __init__.py
+│   │       ├── agencies.py
+│   │       ├── routes.py
+│   │       ├── schedules.py         # Handles missing calendar.txt / calendar_dates.txt
+│   │       ├── stops.py
+│   │       └── trips.py
 │   └── tests/
-│       ├── conftest.py          # Session-scoped SEPTA fixture (downloads + caches)
-│       └── test_gtfs.py         # Integration tests (26 tests)
+│       ├── conftest.py              # Session-scoped SEPTA fixture (downloads + mGTFS cache)
+│       ├── septa_cache.json         # mGTFS cache (gitignored, generated on first run)
+│       └── test_gtfs.py             # 31 integration tests
 ├── typescript/
 │   └── src/
-│       ├── gtfs.ts              # GTFS facade class
+│       ├── gtfs.ts                  # GTFS facade class
 │       ├── index.ts
-│       ├── models/
-│       │   ├── agency.ts
-│       │   ├── calendar.ts      # (TS equivalent)
-│       │   ├── dateRange.ts
-│       │   ├── feed.ts
-│       │   ├── route.ts
-│       │   ├── schedule.ts      # active() with corrected weekday formula
-│       │   ├── stop.ts
-│       │   ├── stopTime.ts      # StopTime with null-safe time parsing
-│       │   ├── timetable.ts     # fromGTFS skips stops with null stop_id
-│       │   └── trip.ts
+│       ├── models/                  # TS equivalents of Python models
 │       ├── tables/
-│       │   └── ...
 │       ├── types/
-│       │   └── ...
 │       └── util/
 │           ├── csv.ts
 │           ├── date.ts
 │           ├── parse.ts
-│           ├── unique.ts        # O(1) Set-based deduplication
+│           ├── unique.ts            # O(1) Set-based deduplication
 │           └── unzip.ts
-├── pyproject.toml               # Python 3.11+, version 0.2.1
-├── package.json                 # version 0.2.1
+├── package.json                     # version 0.2.1
 └── tsconfig.json
 ```
 
@@ -138,21 +134,13 @@ railroaded/
 
 ## `between()` — date-aware datetime filtering
 
-`GTFS.between(start: datetime, end: datetime)` accepts `datetime` objects and
-correctly uses **both** the date and time portions:
+`GTFS.between(start: datetime, end: datetime)` uses **both** the date and time portions of the arguments.
 
 ### Date handling
-- Only trips whose service schedule is active on a date within (or one day
-  before) the query window are considered.
-- The "one day before" extension is intentional: it captures **overnight trips**
-  whose service date is the calendar day before the window starts but whose
-  real running time extends into the window.
+Only trips whose service schedule is active on a date within (or one day before) the query window are considered. The one-day look-back captures overnight trips whose service date is the calendar day before the window starts but whose real running time extends into the window.
 
 ### Overnight trip handling
-GTFS encodes times past midnight as hours ≥ 24 (e.g. `25:30` = 01:30 the
-following day). The stored `stop_time.end_time` is already reduced to `HH%24`
-and `end_offset=True` marks the crossing. `Timetable.between_datetime()` and
-`Trip.between_datetime()` reconstruct real `datetime` values for each trip:
+GTFS encodes times past midnight as hours ≥ 24 (e.g. `25:30` = 01:30 the following day). `StopTime.end_offset` / `start_offset` flag these crossings. `Timetable.between_datetime()` anchors each trip to its `service_date`:
 
 ```python
 real_end = datetime.combine(service_date, timetable.end.end_time)
@@ -160,21 +148,12 @@ if timetable.end.end_offset:
     real_end += timedelta(days=1)
 ```
 
-Overlap is then: `real_start <= end and real_end >= start`.
+Overlap check: `real_start <= end and real_end >= start`.
 
-### Implementation
-The logic lives in three layers:
-- **`Timetable.between_datetime(service_date, start, end)`** — computes real
-  datetimes and checks overlap (anchored to `service_date`)
-- **`Trip.between_datetime(service_date, start, end)`** — delegates to timetable
-- **`GTFS.between(start, end)`** — orchestrates: builds candidate service dates
-  (prev_day…end_date), resolves active service IDs per date via
-  `schedules.on_date()`, then calls `trip.between_datetime()` for each match
-
-### Legacy time-only methods
-`Timetable.between(start: time, end: time)`, `Trip.between(...)`, and
-`Trips.between(...)` remain for internal use but do not handle overnight trips
-correctly. Use `GTFS.between()` for all production queries.
+### Implementation layers
+- `Timetable.between_datetime(service_date, start, end)` — computes real datetimes and checks overlap
+- `Trip.between_datetime(service_date, start, end)` — delegates to timetable
+- `GTFS.between(start, end)` — builds candidate service dates (prev_day … end_date), resolves active service IDs via `schedules.on_date()`, calls `trip.between_datetime()` per match
 
 ### Chaining
 ```python
@@ -195,11 +174,9 @@ cd python
 poetry run pytest tests/ -v
 ```
 
-The session-scoped `septa` fixture downloads the GTFS feed on the first run and writes a pickle cache (`tests/septa_cache.pkl`, gitignored) so subsequent runs skip the network download.
+The session-scoped `septa` fixture downloads the GTFS feed on the first run and writes a minified mGTFS JSON cache (`tests/septa_cache.json`, gitignored). Subsequent runs load from the JSON cache via `GTFS.read(mgtfs_path=...)` — no network access required after the first run. No pickle is used.
 
-**Note:** the mGTFS JSON cache (`GTFS.save` / `GTFS.read` with `mgtfs_path`) is not used for testing because seared's `T(keyed=True)` field has a bug in its `dump` serialiser — it calls `schema.dump(parent_object.data)` instead of serialising individual dict values, producing empty tables. This is a bug in the upstream `seared` library and is tracked as a known limitation below.
-
-**Test classes:**
+### Test classes
 
 | Class | Coverage |
 |-------|----------|
@@ -209,80 +186,52 @@ The session-scoped `septa` fixture downloads the GTFS feed on the first run and 
 | `TestOnRoute` | Route filtering, unknown route |
 | `TestThrough` | Stop filtering, unknown stop |
 | `TestConnecting` | README example, directional correctness |
-| `TestBetween` | `datetime` acceptance, window narrowing, date-independence |
+| `TestBetween` | `datetime` acceptance, window narrowing, date-awareness, overnight trips |
 
 ---
 
-## Issues Resolved in 0.2.1
+## Bug History
 
-All issues from the initial code review have been fixed:
+All issues from the initial code review were resolved in 0.2.1. A further seared serialisation issue was resolved in the seared 0.2.0 dependency upgrade.
 
-### Critical (were blockers)
+### Resolved in 0.2.1
 
-1. **[Python] `trips.py:62` — first stop of each trip silently dropped**
-   - `stop_times[stop.trip_id] = []` → `= [stop]`
+| # | Severity | Location | Description |
+|---|----------|----------|-------------|
+| 1 | Critical | `trips.py:62` | First stop of each trip silently dropped (`= []` → `= [stop]`) |
+| 2 | Critical | `stop_time.py` | `seconds=` kwarg typo (`→ second=`) and wrong hour formula (`(>=24)%24` → `int%24`) |
+| 3 | Critical | `timetable.py:115` | `between()` compared `StopTime` objects to `time` (`.start_time` / `.end_time` required) |
+| 4 | Critical | `stopTime.ts:106-107` | Unsafe `!` assertions on nullable time fields |
+| 5 | Critical | `schedule.ts:91` | Wrong weekday index formula for JS Sunday-first mapping |
+| 6 | High | `trips.py:71` | `KeyError` for trips with no stop times (`→ .get(id, [])`) |
+| 7 | High | `feed.py` | Crash if `feed_info.txt` absent |
+| 8 | High | `schedules.py` | Crash if `calendar.txt` or `calendar_dates.txt` absent |
+| 9 | High | `schedule.py` | `min()`/`max()` crash on empty ranges list |
+| 10 | High | `gtfs.py` | `between()` typed as `date` but used as `datetime` |
+| 11 | Medium | `timetable.py` | Loop variable `s` shadowed `seared as s` import |
+| 12 | Medium | Multiple | Date format `%Y-%m-%d` didn't match GTFS `YYYYMMDD` |
+| 13 | Medium | `timetable.ts` | Unsafe `stop_id!` assertion |
+| 14 | Low | `unique.ts` | O(n²) `indexOf` deduplication → `Set` |
+| 15 | Low | Multiple | Version mismatch across `__init__.py`, `pyproject.toml`, `package.json` |
+| 16 | Low | `pyproject.toml` | Python constraint `^3.9` → `^3.11`; dev-dep section modernised |
 
-2. **[Python] `stop_time.py` — `seconds=` kwarg + wrong hour formula**
-   - `seconds=` → `second=` (Python `time()` constructor parameter name)
-   - `(int(t[:2]) >= 24) % 24` → `int(t[:2]) % 24`
+### Resolved via seared 0.2.0 upgrade
 
-3. **[Python] `timetable.py:115` — `between()` compared `StopTime` objects to `time`**
-   - `self.start <= end` → `self.start.start_time <= end`
-   - `self.end >= start` → `self.end.end_time >= start`
-
-4. **[TypeScript] `stopTime.ts:106-107` — unsafe `!` assertions on nullable time fields**
-   - Added explicit null check; throws descriptive error if both time fields are absent
-
-5. **[TypeScript] `schedule.ts:91` — wrong weekday index formula**
-   - `(date.getDay() - 1) % 7` → `(date.getDay() + 6) % 7`
-   - Maps JS Sunday=0 correctly to GTFS Mon-first index 6
-
-### High
-
-6. **[Python] `trips.py:71` — `KeyError` for trips with no stop times**
-   - `stop_times[trip.id]` → `stop_times.get(trip.id, [])`
-
-7. **[Python] `feed.py` — crash if `feed_info.txt` absent or empty**
-   - `Feed.from_gtfs()` now returns `Optional[Feed]`, handles missing file gracefully
-
-8. **[Python] `schedules.py` — crash if `calendar.txt` or `calendar_dates.txt` absent**
-   - Both files now loaded with `required=False`
-
-9. **[Python] `schedule.py:94,99` — `min()`/`max()` crash on empty ranges list**
-   - Guard added: returns `None` if `self.ranges` is empty
-
-10. **[Python] `gtfs.py` — `between()` typed as `date` but passed to `time`-typed tables**
-    - Signature changed to `datetime`; delegates `start.time()` / `end.time()` downstream
-
-### Medium / Low
-
-11. **[Python] `timetable.py:52` — loop variable `s` shadowed `seared as s` import**
-    - Renamed to `st`
-
-12. **[Python/TS] Date format `%Y-%m-%d` didn't match GTFS `YYYYMMDD` format**
-    - Fixed in `calendar.py`, `calendar_date.py`, `feed.py` → `format='%Y%m%d'`
-
-13. **[TypeScript] `timetable.ts:41` — unsafe `stop_id!` assertion**
-    - Null `stop_id` stops are now skipped during `fromGTFS()`
-
-14. **[TypeScript] `unique.ts` — O(n²) `indexOf` deduplication**
-    - Replaced with `[...new Set(data)]`
-
-15. **Version mismatch** — `__init__.py` said `0.1.5`, pyproject.toml/package.json said `0.2.0`
-    - All three now read `0.2.1`
-
-16. **`pyproject.toml`** — Python constraint updated `^3.9` → `^3.11` to match `seared` requirement; dev dependency section modernised to `[tool.poetry.group.dev.dependencies]`
+| # | Description |
+|---|-------------|
+| S1 | `T(keyed=True)` dump produced empty dicts — `Function` field received parent object instead of individual dict values |
+| S2 | `T(many=True)` dump produced `[{}, ...]` — same `Function` issue for list items |
+| S3 | `Enum(many=True)` dump raised `AttributeError` |
+| S4 | `NDArray(many=True)` dump corrupted on repeated calls (shared counter) |
+| S5 | All seared fields used deprecated `missing=` kwarg |
+| S6 | Classes with `__getitem__` produced empty dumps — marshmallow used `obj[key]` instead of `getattr(obj, key)`; fixed via `BaseSchema.get_attribute` override |
 
 ---
 
-## Remaining Known Limitations
+## Known Limitations
 
-- **mGTFS save/load broken**: `GTFS.save()` / `GTFS.read(mgtfs_path=...)` use
-  `seared.T(keyed=True)` which has a dump bug — the serialize function receives
-  the parent object instead of individual dict values, producing empty tables in
-  the JSON output. Loading from a saved mGTFS file therefore fails. Fix requires
-  patching `seared`.
-- No ZIP-slip protection when extracting remote GTFS archives (`gtfs.py:121-130`)
+- No ZIP-slip protection when extracting remote GTFS archives (`gtfs.py`)
 - `urlretrieve()` has no timeout or file-size limit
-- TypeScript has no test suite
+- TypeScript implementation has no test suite
 - Some non-null assertions (`!`) remain in TypeScript tables/util (low risk — data validated upstream)
+- `Timetable.between(start: time, end: time)` and `Trip.between(...)` do not handle overnight trips correctly; use `GTFS.between(datetime, datetime)` for all production queries
