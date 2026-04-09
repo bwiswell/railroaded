@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "railroaded"
-version = "0.2.1"
+version = "0.3.0"
 description = ""
 authors = ["Benj Wiswell <benjwiswell@gmail.com>"]
 

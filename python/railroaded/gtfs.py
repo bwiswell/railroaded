@@ -15,6 +15,7 @@ from .tables import (
     Agencies,
     Routes,
     Schedules,
+    Shapes,
     Stops,
     Trips
 )
@@ -63,6 +64,8 @@ class GTFS(s.Seared):
     '''a `Stops` table mapping `str` IDs to `Stop` records'''
     trips: Trips = s.T(schema=Trips.SCHEMA)
     '''a `Trips` table mapping `str` IDs to `Trip` records'''
+    shapes: Shapes = s.T(schema=Shapes.SCHEMA)
+    '''a `Shapes` table mapping `str` IDs to `Shape` records (opt-in via shapes=True)'''
 
 
     ### CLASS METHODS ###
@@ -73,7 +76,8 @@ class GTFS(s.Seared):
                 gtfs_path: Optional[str] = None,
                 gtfs_sub: Optional[str] = None,
                 gtfs_uri: Optional[str] = None,
-                mgtfs_path: Optional[str] = None
+                mgtfs_path: Optional[str] = None,
+                shapes: bool = False
             ) -> GTFS:
         '''
         Returns a `GTFS` object containing minified GTFS data read from local
@@ -82,13 +86,13 @@ class GTFS(s.Seared):
         If provided, `mgtfs_path` is checked first for a mGTFS dataset. If it
         exists, the `GTFS` object is created from it and returned; otherwise,
         `read` falls back to one of the following:
-        
+
         - reading a unzipped local GTFS dataset at `gtfs_path`
         - fetching a zipped remote GTFS dataset at `gtfs_uri` with an optional \
             `gtfs_sub` for nested GTFS datasets
 
-        If `mgtfs_path` was specified but `read` fell back to a different 
-        method, the newly parsed mGTFS will be written to `mgtfs_path` to 
+        If `mgtfs_path` was specified but `read` fell back to a different
+        method, the newly parsed mGTFS will be written to `mgtfs_path` to
         improve performance on subsequent reads.
 
         Parameters:
@@ -102,7 +106,11 @@ class GTFS(s.Seared):
                 the URI to use when fetching a remote GTFS dataset
             mgtfs_path (Optional[str]):
                 the path to a local mGTFS dataset
-        
+            shapes (bool):
+                if `True`, load `shapes.txt` polyline geometry; if `False`
+                (default), the `shapes` table is left empty to reduce memory
+                and cache size
+
         Returns:
             gtfs (GTFS):
                 a `GTFS` object containing the minified GTFS dataset
@@ -135,13 +143,14 @@ class GTFS(s.Seared):
             path = gtfs_path
 
         g = GTFS(
-            name=name, 
+            name=name,
             feed=Feed.from_gtfs(path),
-            agencies=Agencies.from_gtfs(path), 
-            routes=Routes.from_gtfs(path), 
+            agencies=Agencies.from_gtfs(path),
+            routes=Routes.from_gtfs(path),
             schedules=Schedules.from_gtfs(path),
             stops=Stops.from_gtfs(path),
-            trips=Trips.from_gtfs(path)
+            trips=Trips.from_gtfs(path),
+            shapes=Shapes.from_gtfs(path) if shapes else Shapes({}),
         )
 
         if not gtfs_path: shutil.rmtree(TMP)
@@ -175,7 +184,8 @@ class GTFS(s.Seared):
             self.routes,
             self.schedules,
             self.stops,
-            trips
+            trips,
+            self.shapes,
         )
     
     def between (self, start: datetime, end: datetime) -> GTFS:

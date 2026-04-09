@@ -1,6 +1,6 @@
 {
   "name": "railroaded",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "a minimal GTFS parsing and processing utility",
   "main": "index.ts",
   "repository": "https://www.github.com/bwiswell/railroaded/typescript",
