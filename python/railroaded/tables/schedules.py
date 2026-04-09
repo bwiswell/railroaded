@@ -51,8 +51,9 @@ class Schedules(s.Seared):
         schedules: dict[str, tuple[list[Calendar], list[CalendarDate]]] = {}
 
         calendars: list[Calendar] = load_list(
-            path = os.path.join(path, 'calendar.txt'), 
-            schema = Calendar.SCHEMA
+            path = os.path.join(path, 'calendar.txt'),
+            schema = Calendar.SCHEMA,
+            required = False
         )
 
         for cal in calendars:
@@ -62,9 +63,10 @@ class Schedules(s.Seared):
                 schedules[cal.service_id] = ([cal], [])
 
         dates: list[CalendarDate] = load_list(
-            path = os.path.join(path, 'calendar_dates.txt'), 
+            path = os.path.join(path, 'calendar_dates.txt'),
             schema = CalendarDate.SCHEMA,
-            int_cols = ['exception_type']
+            int_cols = ['exception_type'],
+            required = False
         )
 
         for date in dates:

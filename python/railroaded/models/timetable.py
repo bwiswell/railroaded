@@ -49,7 +49,7 @@ class Timetable(s.Seared):
             timetable (Timetable):
                 a `Timetable` populated from `stops`
         '''
-        return Timetable({ s.stop_id: s for s in stops })
+        return Timetable({ st.stop_id: st for st in stops })
 
 
     ### PROPERTIES ###    
@@ -112,7 +112,7 @@ class Timetable(s.Seared):
                 a flag indicating if the `Timetable` contains entries between
                 the given `start` and `end` times
         '''
-        return self.start <= end and self.end >= start
+        return self.start.start_time <= end and self.end.end_time >= start
 
     def connects (self, stop_a_id: str, stop_b_id: str) -> bool:
         '''

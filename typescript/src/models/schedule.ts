@@ -88,7 +88,7 @@ export default class Schedule {
             range => (
                 date >= range.start && 
                 date <= range.end && 
-                range.schedule[(date.getDay() - 1) % 7]
+                range.schedule[(date.getDay() + 6) % 7]
             )
         ) 
     }

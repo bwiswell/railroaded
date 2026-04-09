@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date as pydate
+from datetime import date as pydate, datetime
 import json
 import os
 import shutil
@@ -178,15 +178,19 @@ class GTFS(s.Seared):
             trips
         )
     
-    def between (self, start: pydate, end: pydate) -> GTFS:
+    def between (self, start: datetime, end: datetime) -> GTFS:
         '''
         Returns a `GTFS` object containing only the trips with `Timetable`s
-        containing entries between the given `start` and `end` times.
+        containing entries between the given `start` and `end` datetimes.
+
+        The time component of each `datetime` is extracted and used to filter
+        trips; the date component is ignored. To filter by date as well, chain
+        with `on_date`.
 
         Parameters:
-            start (date):
+            start (datetime):
                 the beginning of the time window
-            end (date):
+            end (datetime):
                 the end of the time window
 
         Returns:
@@ -194,7 +198,7 @@ class GTFS(s.Seared):
                 a `GTFS` object containing only the trips with `Timetable`s
                 containing entries between the given `start` and `end` times
         '''
-        return self._ref(self.trips.between(start, end))
+        return self._ref(self.trips.between(start.time(), end.time()))
     
     def connecting (self, stop_a_id: str, stop_b_id: str) -> GTFS:
         '''

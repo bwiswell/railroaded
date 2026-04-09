@@ -101,10 +101,14 @@ export default class StopTime {
         this.startPickupDropoff = data.start_pickup_dropoff
         this.timepoint = toTimepoint(data.timepoint)
 
-        // TODO: This is 'guaranteed' only by the GTFS standard (which is
-        // poorly followed in many cases)
-        const endTimeString = (this.departureTime ?? this.endPickupDropoff)!
-        const startTimeString = (this.arrivalTime ?? this.startPickupDropoff)!
+        const endTimeString = this.departureTime ?? this.endPickupDropoff
+        const startTimeString = this.arrivalTime ?? this.startPickupDropoff
+        if (!endTimeString || !startTimeString) {
+            throw new Error(
+                `StopTime for stop ${this.stopId ?? 'unknown'} on trip ` +
+                `${this.tripId ?? 'unknown'} is missing required time fields`
+            )
+        }
         this.endTime = parseTime(endTimeString)
         this.startTime = parseTime(startTimeString)
     }

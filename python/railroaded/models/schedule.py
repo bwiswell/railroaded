@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date as pydate
+from typing import Optional
 
 import seared as s
 
@@ -89,14 +90,14 @@ class Schedule(s.Seared):
 
     ### PROPERTIES ###
     @property
-    def end (self) -> pydate:
-        '''the end date of the transit schedule'''
-        return max([r.end for r in self.ranges])
-    
+    def end (self) -> Optional[pydate]:
+        '''the end date of the transit schedule, or `None` if no ranges exist'''
+        return max([r.end for r in self.ranges]) if self.ranges else None
+
     @property
-    def start (self) -> pydate:
-        '''the start date of the transit schedule'''
-        return min([r.start for r in self.ranges])
+    def start (self) -> Optional[pydate]:
+        '''the start date of the transit schedule, or `None` if no ranges exist'''
+        return min([r.start for r in self.ranges]) if self.ranges else None
 
 
     ### METHODS ###
