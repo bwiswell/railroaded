@@ -1,3 +1,4 @@
+import os
 from typing import Any, Callable, Optional, TypeVar
 
 from marshmallow import Schema
@@ -5,10 +6,11 @@ import pandas as pd
 
 
 def load_list (
-                path: str, 
+                path: str,
                 schema: Schema,
                 int_cols: Optional[list[str]] = [],
-                float_cols: Optional[list[str]] = []
+                float_cols: Optional[list[str]] = [],
+                required: bool = True
             ) -> list:
         '''
         Reads a CSV file and returns a list of deserialized records.
@@ -18,11 +20,19 @@ def load_list (
                 the path of the CSV file to load data from
             schema (marshmallow.Schema):
                 the Schema for the records in the CSV file
+            required (bool):
+                if `True` (default), raises `FileNotFoundError` when the file
+                is missing; if `False`, returns an empty list instead
 
         Returns:
             records (list[T]):
                 a list of deserialized records
         '''
+        if not os.path.exists(path):
+            if required:
+                raise FileNotFoundError(f'Required GTFS file not found: {path}')
+            return []
+
         delim = ','
         with open(path, 'r') as file:
             header = file.readline()

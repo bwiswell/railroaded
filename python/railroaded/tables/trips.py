@@ -59,7 +59,7 @@ class Trips(s.Seared):
             if stop.trip_id in stop_times:
                 stop_times[stop.trip_id].append(stop)
             else:
-                stop_times[stop.trip_id] = []
+                stop_times[stop.trip_id] = [stop]
 
         trips: list[Trip] = load_list(
             path = os.path.join(path, 'trips.txt'),
@@ -68,7 +68,7 @@ class Trips(s.Seared):
         )
 
         for trip in trips:
-            trip.timetable = Timetable.from_gtfs(stop_times[trip.id])
+            trip.timetable = Timetable.from_gtfs(stop_times.get(trip.id, []))
 
         return Trips({ t.id: t for t in trips })
 

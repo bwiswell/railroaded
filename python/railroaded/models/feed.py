@@ -4,6 +4,7 @@ from datetime import date
 import os
 from typing import Optional
 
+
 import seared as s
 
 from ..util import load_list
@@ -53,11 +54,11 @@ class Feed(s.Seared):
     default_lang: Optional[str] = s.Str()
     '''the language to use when the rider's language is unknown'''
     end_date: Optional[date] = s.Date(
-        data_key='feed_end_date', format='%Y-%m-%d'
+        data_key='feed_end_date', format='%Y%m%d'
     )
     '''the end date of the information provided in the GTFS dataset'''
     start_date: Optional[date] = s.Date(
-        data_key='feed_start_date', format='%Y-%m-%d'
+        data_key='feed_start_date', format='%Y%m%d'
     )
     '''the start date of the information provided in the GTFS dataset'''
     version: str = s.Str(data_key='feed_version')
@@ -66,19 +67,25 @@ class Feed(s.Seared):
 
     ### CLASS METHODS ###
     @classmethod
-    def from_gtfs (self, path: str) -> Feed:
+    def from_gtfs (cls, path: str) -> Optional[Feed]:
         '''
-        Returns a `Feed` record populated from the GTFS data at `path`.
+        Returns a `Feed` record populated from the GTFS data at `path`, or
+        `None` if `feed_info.txt` is absent or empty.
+
+        `feed_info.txt` is optional in the GTFS specification.
 
         Parameters:
             path (str):
                 the path to the GTFS dataset
 
         Returns:
-            feed (Feed):
-                a `Feed` record populated from the GTFS data at `path`
+            feed (Optional[Feed]):
+                a `Feed` record populated from the GTFS data at `path`, or
+                `None` if `feed_info.txt` is absent or empty
         '''
-        return load_list(
-            os.path.join(path, 'feed_info.txt'), 
-            Feed.SCHEMA
-        )[0]
+        records = load_list(
+            os.path.join(path, 'feed_info.txt'),
+            Feed.SCHEMA,
+            required=False
+        )
+        return records[0] if records else None

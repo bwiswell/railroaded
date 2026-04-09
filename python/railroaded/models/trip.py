@@ -1,4 +1,4 @@
-from datetime import time
+from datetime import date as pydate, datetime, time
 from enum import Enum
 from typing import Optional
 
@@ -89,6 +89,31 @@ class Trip(s.Seared):
 
 
     ### METHODS ###
+    def between_datetime (
+                self,
+                service_date: pydate,
+                start: datetime,
+                end: datetime
+            ) -> bool:
+        '''
+        Returns a `bool` indicating if the `Timetable` for the `Trip` record
+        overlaps with the given `[start, end]` datetime window, accounting for
+        trips that cross midnight.
+
+        Parameters:
+            service_date (date):
+                the calendar date on which this trip is scheduled to run
+            start (datetime):
+                the beginning of the query window
+            end (datetime):
+                the end of the query window
+
+        Returns:
+            between (bool):
+                `True` if the trip's real datetime range overlaps `[start, end]`
+        '''
+        return self.timetable.between_datetime(service_date, start, end)
+
     def between (self, start: time, end: time) -> bool:
         '''
         Returns a `bool` indicating if the `Timetable` for the `Trip` record

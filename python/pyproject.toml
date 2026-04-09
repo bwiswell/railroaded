@@ -1,16 +1,16 @@
 [tool.poetry]
 name = "railroaded"
-version = "0.2.0"
+version = "0.2.1"
 description = ""
 authors = ["Benj Wiswell <benjwiswell@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.11"
 pandas = "^2.2.3"
-seared = {git = "https://www.github.com/bwiswell/seared.git"}
+seared = {git = "https://github.com/bwiswell/seared.git"}
 
-[tool.poetry.dev-dependencies]
-pytest = "^5.2"
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -35,11 +35,13 @@ export default class Timetable {
     static fromGTFS (stops: GTFSStopTime[]): MGTFSTimetable {
         return {
             data: stops.reduce(
-                (prev, curr) => ({
-                    ...prev,
-                    // TODO: better handling for null ID
-                    [curr.stop_id!]: StopTime.fromGTFS(curr)
-                }),
+                (prev, curr) => {
+                    if (!curr.stop_id) return prev
+                    return {
+                        ...prev,
+                        [curr.stop_id]: StopTime.fromGTFS(curr)
+                    }
+                },
                 {} as Record<string, MGTFSStopTime>
             )
         }
